@@ -83,3 +83,12 @@ async def product_detail(product_id: str, request: Request) -> dict:
             "scores": scores,
             "flags": flags,
         }
+
+
+@router.get("/extract-properties")
+async def extract_properties_route(text: str) -> list[dict]:
+    """U3 live chips (01_spec §6). Deterministic parse; LLM pass reserved
+    for the run-creation path where latency matters less."""
+    from shiboleth.services.ingestion.extract import extract_properties
+
+    return [d.model_dump() for d in extract_properties(text, invoke=None)]
