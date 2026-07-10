@@ -77,10 +77,11 @@ class TestMask:
 
 class TestModelRegistry:
     def test_defaults_per_stage(self):
-        # Groq primary on all stages (Aarvin 2026-07-10); Gemini = fallback
-        # via DEFAULT_MODEL_* env overrides.
+        # check = Anthropic Haiku (Aarvin 2026-07-10, paid approved: Groq's
+        # 100k TPD cap cannot carry corpus-scale E3); cheap stages stay Groq.
         settings = make_settings()
-        for stage in ("extract", "check", "cluster_label", "report"):
+        assert settings.model_for("check") == "anthropic:claude-haiku-4-5"
+        for stage in ("extract", "cluster_label", "report"):
             assert settings.model_for(stage) == "groq:llama-3.3-70b-versatile"
 
     def test_env_override_wins(self):

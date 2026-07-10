@@ -28,14 +28,15 @@ ENV_FILE = REPO_ROOT / ".env"
 REQUIRED_KEYS = ("DATABASE_URL", "LANGSMITH_API_KEY", "GOOGLE_API_KEY", "GROQ_API_KEY")
 
 # Stage -> (env override var, default init_chat_model string).
-# PRIMARY = groq:llama-3.3-70b-versatile on every stage (Aarvin, 2026-07-10):
-# proven at the M2 gate, ~0.8s/call, $0. Gemini 3.5 Flash is the documented
-# fallback via DEFAULT_MODEL_* overrides (Google free quota is project-wide
-# and small on new keys — see decision log). Pinned ids, never "-latest":
-# the E3 loop and base condition need stable model identities.
+# check = anthropic:claude-haiku-4-5 (Aarvin, 2026-07-10, PAID approved):
+# Groq's hidden 100k tokens-per-DAY cap (visible only in 429 bodies, not
+# headers) cannot carry corpus-scale E3 runs — ~$1/full run on Haiku vs a
+# hard daily wall. Cheap stages stay Groq ($0; small payloads fit TPD).
+# Pinned ids, never "-latest": the E3 loop and base condition need stable
+# model identities.
 MODEL_STAGES: dict[str, tuple[str, str]] = {
     "extract": ("DEFAULT_MODEL_EXTRACT", "groq:llama-3.3-70b-versatile"),
-    "check": ("DEFAULT_MODEL_CHECK", "groq:llama-3.3-70b-versatile"),
+    "check": ("DEFAULT_MODEL_CHECK", "anthropic:claude-haiku-4-5"),
     "cluster_label": ("DEFAULT_MODEL_CLUSTER_LABEL", "groq:llama-3.3-70b-versatile"),
     "report": ("DEFAULT_MODEL_REPORT", "groq:llama-3.3-70b-versatile"),
 }

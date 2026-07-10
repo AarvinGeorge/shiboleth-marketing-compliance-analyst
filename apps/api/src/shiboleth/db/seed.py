@@ -49,8 +49,8 @@ CHECKS: list[dict] = [
     },
     {
         "id": "R-02-T", "rule_id": "R-02", "kind": "trigger",
-        "text": "Is a rate of finance charge stated?",
-        "evidence_criteria": "A numeric rate describing the cost of credit (loan fee rate, finance charge percentage); quote the rate in context.",
+        "text": "Is a finance charge or cost of credit stated, as a rate or an amount?",
+        "evidence_criteria": "Any stated cost of credit: a percentage rate OR a dollar amount described as a finance charge, loan fee, or borrowing cost (Reg Z reading: a stated finance charge triggers the APR requirement); quote it in context.",
         "library_entry_id": None,
     },
     {

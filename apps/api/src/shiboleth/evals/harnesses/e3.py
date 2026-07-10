@@ -63,8 +63,13 @@ class PacedCachedInvoke:
     model+prompt), ~10k tokens/min pacing under Groq's measured 12k TPM, and
     429 retry with backoff. Cache hits cost nothing (subset iteration)."""
 
+    # tokens-per-minute budget by provider (measured: Groq 12k TPM + hidden
+    # 100k TPD; Anthropic 10M input TPM — effectively unpaced)
+    TPM_BUDGETS = {"groq": 8_000, "anthropic": 1_000_000, "google_genai": 8_000}
+
     def __init__(self, model_string: str, use_cache: bool = True):
         self.model_string = model_string
+        self.tpm_budget = self.TPM_BUDGETS.get(model_string.split(":")[0], 8_000)
         self.use_cache = use_cache
         self.cache: dict[str, dict] = {}
         if use_cache and CACHE_PATH.exists():
@@ -82,7 +87,7 @@ class PacedCachedInvoke:
         elapsed = time.monotonic() - self._window_start
         if elapsed > 60:
             self._window_start, self._window_tokens = time.monotonic(), 0
-        elif self._window_tokens + est_tokens > 8_000:
+        elif self._window_tokens + est_tokens > self.tpm_budget:
             time.sleep(60 - elapsed)
             self._window_start, self._window_tokens = time.monotonic(), 0
         self._window_tokens += est_tokens
@@ -105,17 +110,23 @@ class PacedCachedInvoke:
             try:
                 verdict = self._live(prompt)
                 break
-            except Exception as exc:  # 429s surface as ChatGroq errors
+            except Exception as exc:
                 if "429" in str(exc) or "rate" in str(exc).lower():
+                    # NEVER retry silently (TPD postmortem: silent retry
+                    # ladders are indistinguishable from hangs)
+                    print(f"[e3] 429 on attempt {attempt + 1}: "
+                          f"{str(exc)[:160]} — sleeping {delay:.0f}s", flush=True)
                     time.sleep(delay)
                     delay = min(delay * 1.5, 90)
-                    # a 429 means the window is spent: reset local budget
-                    self._window_start, self._window_tokens = time.monotonic(), 8000
+                    self._window_start = time.monotonic()
+                    self._window_tokens = self.tpm_budget
                     continue
                 raise
         else:
             raise RuntimeError("rate-limit retries exhausted")
         self.calls_live += 1
+        print(f"[e3] live call #{self.calls_live} done (cache={len(self.cache)})",
+              flush=True)
         self.cache[key] = verdict.model_dump()
         if self.use_cache:
             CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
