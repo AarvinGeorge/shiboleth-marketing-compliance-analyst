@@ -80,6 +80,7 @@ async def product_detail(product_id: str, request: Request) -> dict:
             "product": {"id": product.id, "name": product.name,
                         "status": product.status},
             "run_id": latest.id if latest else None,  # why-flagged chain source
+            "model_config": latest.model_config_json if latest else None,
             "properties": [
                 {"id": p.id, "kind": p.kind, "url_or_handle": p.url_or_handle,
                  "config": p.config} for p in properties

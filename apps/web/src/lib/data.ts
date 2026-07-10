@@ -82,7 +82,16 @@ const SEVERITY_BY_RULE: Record<string, Severity> = {
   "R-03": "Medium",
   "R-04": "Medium",
 };
-const POLICY_MODEL = "Groq Llama 3.3"; // model policy default; not in API yet
+// Real checker model comes from the run's model_config (API); this label
+// is the last-resort fallback for runs recorded before attribution landed.
+const POLICY_MODEL_FALLBACK = "unattributed (pre-M7 run)";
+export function modelLabel(detail?: { model_config?: { check?: string } | null }): string {
+  const raw = detail?.model_config?.check;
+  if (!raw) return POLICY_MODEL_FALLBACK;
+  const name = raw.split(":").pop() ?? raw;
+  return name.replace("claude-haiku-4-5", "Claude Haiku 4.5")
+             .replace("llama-3.3-70b-versatile", "Groq Llama 3.3 70B");
+}
 
 const TAG_LABEL: Record<IntersectionTag, string> = {
   all_good: "All good",
@@ -270,7 +279,9 @@ function buildProductView(
     ? { ...websiteProp }
     : { id: "unknown", kind: "website", url_or_handle: "unknown", config: {} };
 
-  const views = detail.flags.map((f) => toFlagView(f, property));
+  const views = detail.flags.map((f) =>
+    toFlagView(f, property, modelLabel(detail))
+  );
 
   // clusters: group by cluster_id, ordered by size desc, unclustered last
   const groups = new Map<string, FlagView[]>();
@@ -329,7 +340,7 @@ function buildProductView(
   };
 }
 
-function toFlagView(f: ApiFlag, property: Property): FlagView {
+function toFlagView(f: ApiFlag, property: Property, model?: string): FlagView {
   const tag = coerceTag(f.verdicts.intersection_tag);
   const ruleId = ruleIdOf(f.verdicts.check_id);
   const rule: Rule = rules.find((r) => r.id === ruleId) ?? {
@@ -391,7 +402,7 @@ function toFlagView(f: ApiFlag, property: Property): FlagView {
     explainer: firstSentence(f.verdicts.reason),
     severity: severityOf(f.verdicts.check_id),
     foundAt: "latest corpus run",
-    model: POLICY_MODEL,
+    model: model ?? POLICY_MODEL_FALLBACK,
     missingRequirement: null,
     postDate: null,
     chain: [
@@ -402,7 +413,7 @@ function toFlagView(f: ApiFlag, property: Property): FlagView {
         title: `Requirement check · ${f.verdicts.check_id} evaluated against the material`,
       },
       {
-        title: `Verdict · ${TAG_LABEL[tag]} at ${f.verdicts.confidence.toFixed(2)} confidence · ${POLICY_MODEL}`,
+        title: `Verdict · ${TAG_LABEL[tag]} at ${f.verdicts.confidence.toFixed(2)} confidence · ${model ?? POLICY_MODEL_FALLBACK}`,
         detail: f.verdicts.reason,
       },
     ],

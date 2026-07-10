@@ -90,6 +90,8 @@ export interface ApiProductDetail {
   properties: ApiProperty[];
   scores: ApiScores | null;
   flags: ApiFlag[];
+  run_id?: string | null;
+  model_config?: { check?: string } | null;
 }
 
 export interface ApiDispositionResult {

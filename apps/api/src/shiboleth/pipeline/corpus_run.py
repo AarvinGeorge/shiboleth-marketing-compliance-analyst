@@ -39,7 +39,10 @@ async def run_corpus(session: AsyncSession, invoke, labeler,
                      product_id: str = PRODUCT_ID) -> str:
     run = Run(product_id=product_id, mode="corpus", status="running",
               started_at=datetime.now(UTC),
-              scorecard_snapshot={"scorecard_id": "SC-01", "rules": len(RULES)})
+              scorecard_snapshot={"scorecard_id": "SC-01", "rules": len(RULES)},
+              # audit trail must attribute the actual checker model (Aarvin
+              # caught the UI showing a stale policy default)
+              model_config_json={"check": getattr(invoke, "model_string", "unknown")})
     session.add(run)
     await session.flush()
     await _emit(session, run.id, "run_started", "graph", {"mode": "corpus"})

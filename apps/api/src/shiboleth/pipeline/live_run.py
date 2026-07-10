@@ -64,6 +64,7 @@ async def start_live_run(
     if run_id is None:
         run_id = await create_live_run(session, product_id)
     run = await session.get(Run, run_id)
+    run.model_config_json = {"check": getattr(invoke, "model_string", "unknown")}
 
     properties = (await session.execute(
         select(Property).where(Property.product_id == product_id)
