@@ -1,9 +1,10 @@
-// meta: U6 product detail (/products/[id]). Product metric row (4 MetricCards,
-// contents per v2.2 delta with a verified-score-per-run line sparkline), flags
-// list with BOTH groupings toggleable (by cluster AND by property), cluster
-// bulk actions (Dismiss all / Confirm all on open flags), per-flag disposition
-// via FlagRow, lifecycle chips, three-tag verdicts. Reads via lib/data only;
-// disposition state lives in the client flag store.
+// meta: U6 product detail (/products/[id]). API-backed via useProductView:
+// metric row computed from live scores + lifecycle overlay, flags list with
+// BOTH groupings toggleable (by cluster AND by property; clusters are the
+// run's real clusters incl. labels), cluster bulk actions (sequential
+// dispositions against POST /flags/{id}/disposition), per-flag disposition
+// via FlagRow, lifecycle chips, three-tag verdicts. Demo products (404 from
+// the API) fall back to their fixture summaries with no flags.
 
 "use client";
 
@@ -17,13 +18,7 @@ import { FlagRow } from "@/components/primitives/flag-row";
 import { IntersectionPill } from "@/components/primitives/verdict-tags";
 import { LifecycleChip } from "@/components/primitives/lifecycle-chip";
 import { PropertyIcon } from "@/components/primitives/property-chip";
-import {
-  getClusters,
-  getFlagViewsForProduct,
-  getProduct,
-  getProductMetrics,
-  type FlagView,
-} from "@/lib/data";
+import { useDisposition, useProductView, type FlagView } from "@/lib/data";
 import { useFlagStore } from "@/lib/flag-store";
 import type { FlagState, IntersectionTag, PropertyKind } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -36,16 +31,24 @@ export default function ProductDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const product = getProduct(id);
-  const metrics = getProductMetrics(id);
-  const clusters = getClusters(id);
-  const views = getFlagViewsForProduct(id);
+  const { summary, metrics, clusters, views, isLoading, apiDown } =
+    useProductView(id);
   const [grouping, setGrouping] = useState<Grouping>("cluster");
 
-  if (!product) {
+  if (isLoading) {
+    return (
+      <main className="flex flex-col gap-3 px-11 pb-14 pt-7">
+        <div className="h-5 w-56 animate-pulse rounded-sm bg-surface" />
+        <div className="h-24 animate-pulse rounded-lg border border-border bg-surface" />
+        <div className="h-64 animate-pulse rounded-lg border border-border bg-surface" />
+      </main>
+    );
+  }
+
+  if (!summary) {
     return (
       <main className="px-11 pt-9 text-sm text-muted-foreground">
-        Product not found.{" "}
+        {apiDown ? "The API is unreachable." : "Product not found."}{" "}
         <Link href="/" className="text-primary hover:underline">
           Back to dashboard
         </Link>
@@ -59,14 +62,14 @@ export default function ProductDetailPage({
         <Link href="/" className="text-primary hover:underline">
           Dashboard
         </Link>{" "}
-        <span className="text-border">›</span> {product.name}
+        <span className="text-border">›</span> {summary.name}
       </div>
 
       <div className="mb-5 flex items-start justify-between">
         <div className="flex flex-col gap-1.5">
-          <h1 className="text-xl font-medium tracking-tight">{product.name}</h1>
+          <h1 className="text-xl font-medium tracking-tight">{summary.name}</h1>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            {product.coverage.map((c) => (
+            {summary.coverage.map((c) => (
               <span
                 key={c.kind}
                 className="inline-flex h-[22px] items-center gap-1.5 rounded-sm border border-border bg-surface px-2 font-mono text-[11px] font-medium text-foreground/70"
@@ -75,8 +78,8 @@ export default function ProductDetailPage({
                 {c.label}
               </span>
             ))}
-            {product.lastChecked ? (
-              <span>{product.lastChecked.toLowerCase()}</span>
+            {summary.lastChecked ? (
+              <span>{summary.lastChecked.toLowerCase()}</span>
             ) : null}
           </div>
         </div>
@@ -106,12 +109,13 @@ export default function ProductDetailPage({
       ) : null}
 
       {views.length === 0 ? (
-        <NoFlags checking={product.status === "checking"} />
+        <NoFlags checking={summary.status === "checking"} />
       ) : (
         <>
           <div className="mb-3.5 flex items-center gap-3">
             <span className="flex-1 text-[13px] font-semibold">
-              {views.length} flags in {clusters.length} clusters
+              {views.length} flags in{" "}
+              {clusters.filter((c) => c.id !== "unclustered").length} clusters
             </span>
             <div className="flex rounded-md bg-muted p-[3px]">
               {(["cluster", "property"] as const).map((g) => (
@@ -194,12 +198,25 @@ function ClusterGroup({
   productId: string;
 }) {
   const lifecycles = useFlagStore((s) => s.lifecycles);
-  const confirmAll = useFlagStore((s) => s.confirmAll);
-  const dismissAll = useFlagStore((s) => s.dismissAll);
+  const disposition = useDisposition(productId);
   const flagIds = useMemo(() => views.map((v) => v.flag.id), [views]);
-  const openCount = flagIds.filter(
-    (fid) => lifecycles[fid]?.state === "open"
-  ).length;
+  const stateOf = (fid: string): FlagState =>
+    lifecycles[fid]?.state ??
+    views.find((v) => v.flag.id === fid)?.flag.state ??
+    "open";
+  const openIds = flagIds.filter((fid) => stateOf(fid) === "open");
+  const [expanded, setExpanded] = useState(views.length <= 8);
+
+  async function bulk(action: "confirm" | "dismiss") {
+    // sequential to keep the API and score recompute orderly
+    for (const fid of openIds) {
+      try {
+        await disposition.mutateAsync({ flagId: fid, action });
+      } catch {
+        // per-flag errors surface inline via the store; keep going
+      }
+    }
+  }
 
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-background">
@@ -211,38 +228,50 @@ function ClusterGroup({
             <SourceLine text={sourceLine} />
           </span>
         </div>
-        {openCount > 0 ? (
+        {openIds.length > 0 ? (
           <>
             <Button
               variant="ghost"
               size="sm"
               className="text-muted-foreground"
-              onClick={() => dismissAll(flagIds)}
+              disabled={disposition.isPending}
+              onClick={() => bulk("dismiss")}
             >
               Dismiss all
             </Button>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => confirmAll(flagIds)}
+              disabled={disposition.isPending}
+              onClick={() => bulk("confirm")}
             >
               Confirm all
             </Button>
           </>
         ) : (
           <ClusterStateChip
-            states={flagIds.map((fid) => lifecycles[fid].state)}
+            states={flagIds.map((fid) => stateOf(fid))}
             team={
-              flagIds.map((fid) => lifecycles[fid].team).find((t) => t) ?? null
+              flagIds.map((fid) => lifecycles[fid]?.team).find((t) => t) ??
+              null
             }
           />
         )}
+        <button
+          type="button"
+          onClick={() => setExpanded((e) => !e)}
+          className="text-xs font-medium text-muted-foreground hover:text-foreground"
+        >
+          {expanded ? "Collapse" : `Show ${views.length}`}
+        </button>
       </div>
-      <div className="divide-y divide-border/60">
-        {views.map((v) => (
-          <FlagRow key={v.flag.id} view={v} productId={productId} />
-        ))}
-      </div>
+      {expanded ? (
+        <div className="divide-y divide-border/60">
+          {views.map((v) => (
+            <FlagRow key={v.flag.id} view={v} productId={productId} />
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -265,11 +294,11 @@ function ClusterStateChip({
 
 function SourceLine({ text }: { text: string }) {
   // Rule and entry ids render in the mono face (DESIGN.md typography rule).
-  const parts = text.split(/(R-0\d(?:\.\d)?|D-0\d)/g);
+  const parts = text.split(/(R-0\d(?:-[A-Z]+)?|D-0\d)/g);
   return (
     <>
       {parts.map((p, i) =>
-        /^(R-0\d(\.\d)?|D-0\d)$/.test(p) ? (
+        /^(R-0\d(-[A-Z]+)?|D-0\d)$/.test(p) ? (
           <span key={i} className="font-mono">
             {p}
           </span>

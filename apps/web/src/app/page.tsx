@@ -1,26 +1,34 @@
 // meta: U2 dashboard (route /). Five hero MetricCards with intent tooltips
-// (contents per v2.2 delta, Delta 1: verbatim values and sublabels; hero card
-// 1 carries the 7-day area sparkline) + product cards in four states
-// (flagged / clear / checking-with-progress / empty) + New check CTA.
-// Layout composition per prototype 3b; reads fixtures via lib/data only.
+// (portfolio strip stays DESIGN.md demo data; no /metrics endpoint yet) +
+// product cards: REAL products from the API (TurboTax with live scores and
+// open-flag counts) followed by the DESIGN.md demo cards (clear / checking /
+// empty states). Reads through lib/data hooks only; API-down renders an
+// inline notice, never a crash.
 
 "use client";
 
 import Link from "next/link";
-import { LoaderCircle, Plus, ChevronRight, Check, Activity } from "lucide-react";
+import {
+  LoaderCircle,
+  Plus,
+  ChevronRight,
+  Check,
+  Activity,
+  TriangleAlert,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { MetricCard } from "@/components/primitives/metric-card";
 import { Sparkline } from "@/components/primitives/sparkline";
 import { PropertyIcon } from "@/components/primitives/property-chip";
 import { NewCheckModal } from "@/components/shell/new-check-modal";
-import { getHeroMetrics, getProducts } from "@/lib/data";
+import { getHeroMetrics, useProducts } from "@/lib/data";
 import type { ProductSummary } from "@/lib/fixtures";
 import { cn } from "@/lib/utils";
 
 export default function DashboardPage() {
   const metrics = getHeroMetrics();
-  const products = getProducts();
+  const { products, isLoading, apiDown } = useProducts();
 
   return (
     <main className="flex flex-col px-11 pb-12 pt-9">
@@ -59,8 +67,19 @@ export default function DashboardPage() {
         ))}
       </div>
 
+      {apiDown ? (
+        <div className="mb-3 flex items-center gap-2.5 rounded-md border border-danger/30 bg-danger-bg px-3.5 py-2.5">
+          <TriangleAlert className="size-3.5 flex-none text-danger" />
+          <span className="text-xs text-foreground/70">
+            The API is unreachable. Live products are hidden; demo cards remain.
+          </span>
+        </div>
+      ) : null}
+
       <div className="flex flex-col gap-3">
-        {products.length === 0 ? (
+        {isLoading ? (
+          <div className="h-28 animate-pulse rounded-lg border border-border bg-surface" />
+        ) : products.length === 0 ? (
           <EmptyState />
         ) : (
           products.map((p) => <ProductCard key={p.id} product={p} />)

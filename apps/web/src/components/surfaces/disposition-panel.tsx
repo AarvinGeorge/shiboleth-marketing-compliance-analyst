@@ -1,9 +1,10 @@
 // meta: U7 Disposition panel. Open: Dismiss / Confirm; Confirm opens the
 // assign strip (Social | Web | Growth | Legal + note + Assign/Cancel,
-// prototype 3g state 1). Assigned/confirmed and dismissed states show the
-// outcome chip + note + Undo; after assignment the delta 3 hint appears:
-// "closes automatically when a future scan verifies the fix." State lives in
-// the shared client flag store (same source as U6 rows).
+// prototype 3g state 1). Actions POST /flags/{id}/disposition via the
+// useDisposition mutation (optimistic, reconciled with the server's
+// {flag, scores}); 409s render as an inline error line, not a crash.
+// After assignment the delta 3 hint appears. No Undo: dismissed is terminal
+// in the M4 state machine.
 
 "use client";
 
@@ -14,13 +15,22 @@ import { Input } from "@/components/ui/input";
 import { TEAMS } from "@/components/primitives/flag-row";
 import { LifecycleChip } from "@/components/primitives/lifecycle-chip";
 import { useFlagStore } from "@/lib/flag-store";
+import { useDisposition } from "@/lib/data";
 import { cn } from "@/lib/utils";
+import type { FlagState } from "@/lib/types";
 
-export function DispositionPanel({ flagId }: { flagId: string }) {
-  const lifecycle = useFlagStore((s) => s.lifecycles[flagId]);
-  const confirm = useFlagStore((s) => s.confirm);
-  const dismiss = useFlagStore((s) => s.dismiss);
-  const undo = useFlagStore((s) => s.undo);
+export function DispositionPanel({
+  flagId,
+  productId,
+  fallback,
+}: {
+  flagId: string;
+  productId: string;
+  fallback: { state: FlagState; team: string | null; note: string | null };
+}) {
+  const lifecycle = useFlagStore((s) => s.lifecycles[flagId]) ?? fallback;
+  const error = useFlagStore((s) => s.errors[flagId]);
+  const disposition = useDisposition(productId);
   const [assigning, setAssigning] = useState(false);
   const [team, setTeam] = useState("");
   const [note, setNote] = useState("");
@@ -32,10 +42,19 @@ export function DispositionPanel({ flagId }: { flagId: string }) {
       {lifecycle.state === "open" ? (
         <>
           <div className="flex gap-2.5">
-            <Button variant="outline" onClick={() => dismiss(flagId)}>
+            <Button
+              variant="outline"
+              disabled={disposition.isPending}
+              onClick={() => disposition.mutate({ flagId, action: "dismiss" })}
+            >
               Dismiss
             </Button>
-            <Button onClick={() => setAssigning(true)}>Confirm</Button>
+            <Button
+              disabled={disposition.isPending}
+              onClick={() => setAssigning(true)}
+            >
+              Confirm
+            </Button>
           </div>
           {assigning ? (
             <div className="flex flex-col gap-2.5 border-t border-border/60 pt-3.5">
@@ -68,9 +87,14 @@ export function DispositionPanel({ flagId }: { flagId: string }) {
               <div className="flex gap-2.5">
                 <Button
                   size="sm"
-                  disabled={!team}
+                  disabled={!team || disposition.isPending}
                   onClick={() => {
-                    confirm(flagId, team, note);
+                    disposition.mutate({
+                      flagId,
+                      action: "confirm",
+                      team,
+                      note: note || undefined,
+                    });
                     setAssigning(false);
                   }}
                 >
@@ -97,13 +121,6 @@ export function DispositionPanel({ flagId }: { flagId: string }) {
               Note: {lifecycle.note}
             </span>
           ) : null}
-          <button
-            type="button"
-            onClick={() => undo(flagId)}
-            className="ml-auto text-xs font-medium text-primary hover:underline"
-          >
-            Undo
-          </button>
         </div>
       ) : (
         <div className="flex flex-col gap-2">
@@ -123,13 +140,6 @@ export function DispositionPanel({ flagId }: { flagId: string }) {
                 Note: {lifecycle.note}
               </span>
             ) : null}
-            <button
-              type="button"
-              onClick={() => undo(flagId)}
-              className="ml-auto text-xs font-medium text-primary hover:underline"
-            >
-              Undo
-            </button>
           </div>
           {lifecycle.state === "assigned" ||
           lifecycle.state === "fix_pending_verification" ? (
@@ -139,6 +149,9 @@ export function DispositionPanel({ flagId }: { flagId: string }) {
           ) : null}
         </div>
       )}
+      {error ? (
+        <span className="text-xs font-medium text-danger-text">{error}</span>
+      ) : null}
     </div>
   );
 }

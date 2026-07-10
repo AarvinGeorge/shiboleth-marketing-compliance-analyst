@@ -1,9 +1,10 @@
 // meta: U7 evidence panel, swappable keyed on modality (08 §5 future-modality
-// note). text/social_post render the extracted text with the evidence span
+// note). text/social_post render the panel text with the evidence span
 // highlighted: mono-evidence face, danger-bg tint, 2px danger underline token
 // (DESIGN.md evidence-underline). image/video show a day-2 placeholder.
-// The evidence quote is a guaranteed substring of extracted_text (the
-// programmatic evidence-validity contract), so a plain split renders it.
+// M4 note: the API serves no material text, so the panel text IS the
+// API-served evidence_quote (highlight covers it), and the full checker
+// reason renders below it as the analysis line.
 
 import { TriangleAlert } from "lucide-react";
 import { PropertyIcon } from "@/components/primitives/property-chip";
@@ -40,6 +41,16 @@ export function EvidencePanel({ view }: { view: FlagView }) {
           Media evidence rendering lands with the multimodal build.
         </div>
       )}
+      {flag.verdicts.reason ? (
+        <div className="border-t border-border/60 bg-surface/60 px-6 py-3.5">
+          <span className="text-xs font-medium text-muted-foreground">
+            Checker reasoning
+          </span>
+          <p className="mt-1 text-xs leading-relaxed text-foreground/70">
+            {flag.verdicts.reason}
+          </p>
+        </div>
+      ) : null}
       {meta.missingRequirement ? (
         <div className="mx-6 mb-5 flex items-start gap-2.5 rounded-md border border-warning/30 bg-warning-bg px-3.5 py-2.5">
           <TriangleAlert className="mt-0.5 size-3.5 flex-none text-warning" />

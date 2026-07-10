@@ -1,9 +1,9 @@
 // meta: U3 New check modal (client Dialog, not a route). Product
-// create-or-pick, freeform links textarea with detected PropertyChips
-// (fixture mode: deterministic client-side extraction via data.ts, simulating
-// N1's live chips; zero LLM, zero network), crawl depth / page cap / timeframe
-// selects. Wraps any trigger via DialogTrigger asChild. Submitting is
-// simulated; the M4 swap posts /checks instead.
+// create-or-pick (list via useProducts: API + demo), freeform links textarea
+// with detected PropertyChips (deterministic client-side extraction until M6
+// live mode), crawl depth / page cap / timeframe selects. Start check POSTs
+// /checks {mode: corpus} for API-backed products (then invalidates product
+// queries); demo products and create-new stay simulated until M6.
 
 "use client";
 
@@ -30,14 +30,21 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { PropertyChip } from "@/components/primitives/property-chip";
-import { extractPropertiesFromText, getProducts } from "@/lib/data";
+import {
+  extractPropertiesFromText,
+  useProducts,
+  useProductsQuery,
+  useStartCheck,
+} from "@/lib/data";
 
 const NEW_PRODUCT = "__new__";
 
 export function NewCheckModal({ children }: { children: React.ReactNode }) {
-  const products = getProducts();
+  const { products } = useProducts();
+  const apiIds = new Set((useProductsQuery().data ?? []).map((p) => p.id));
+  const startCheckMutation = useStartCheck();
   const [open, setOpen] = useState(false);
-  const [productId, setProductId] = useState<string>(products[0]?.id ?? "");
+  const [productId, setProductId] = useState<string>("");
   const [newName, setNewName] = useState("");
   const [linksText, setLinksText] = useState("");
   const [removed, setRemoved] = useState<Set<string>>(new Set());
@@ -45,6 +52,9 @@ export function NewCheckModal({ children }: { children: React.ReactNode }) {
   const [pageCap, setPageCap] = useState("20");
   const [timeframe, setTimeframe] = useState("Feb 1 to Mar 31");
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const selectedId = productId || products[0]?.id || "";
 
   const chips = useMemo(
     () =>
@@ -59,11 +69,29 @@ export function NewCheckModal({ children }: { children: React.ReactNode }) {
     setRemoved(new Set());
     setNewName("");
     setSubmitting(false);
+    setSubmitError(null);
   }
 
   function startCheck() {
     setSubmitting(true);
-    // Fixture mode: simulate run creation, then close. M4 posts /checks here.
+    setSubmitError(null);
+    if (selectedId && apiIds.has(selectedId)) {
+      // Real product: corpus-mode run against the API (synchronous server-side).
+      startCheckMutation.mutate(selectedId, {
+        onSuccess: () => {
+          setOpen(false);
+          reset();
+        },
+        onError: (err) => {
+          setSubmitting(false);
+          setSubmitError(
+            err instanceof Error ? err.message : "The check could not start."
+          );
+        },
+      });
+      return;
+    }
+    // Demo product or create-new: simulated (live mode lands at M6).
     window.setTimeout(() => {
       setOpen(false);
       reset();
@@ -89,7 +117,7 @@ export function NewCheckModal({ children }: { children: React.ReactNode }) {
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <Label className="text-[13px]">Product</Label>
-            <Select value={productId} onValueChange={setProductId}>
+            <Select value={selectedId} onValueChange={setProductId}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Pick a product" />
               </SelectTrigger>
@@ -105,7 +133,7 @@ export function NewCheckModal({ children }: { children: React.ReactNode }) {
                 <SelectItem value={NEW_PRODUCT}>Create new product</SelectItem>
               </SelectContent>
             </Select>
-            {productId === NEW_PRODUCT ? (
+            {selectedId === NEW_PRODUCT ? (
               <Input
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
@@ -195,6 +223,11 @@ export function NewCheckModal({ children }: { children: React.ReactNode }) {
           </div>
         </div>
         <DialogFooter className="border-t border-border pt-3">
+          {submitError ? (
+            <span className="mr-auto self-center text-xs font-medium text-danger-text">
+              {submitError}
+            </span>
+          ) : null}
           <Button
             variant="outline"
             onClick={() => setOpen(false)}

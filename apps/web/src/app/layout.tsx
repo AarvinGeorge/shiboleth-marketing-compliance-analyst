@@ -1,10 +1,10 @@
 // meta: root layout. Fonts per DESIGN.md typography: Inter (all UI),
-// JetBrains Mono (evidence quotes + rule ids). Mounts the U1 app shell
-// (fixed left sidebar, expanded only) and the tooltip provider; the main
-// panel renders the active surface. Desktop 1440 only for v1.
+// JetBrains Mono (evidence quotes + rule ids). Mounts the client Providers
+// (TanStack Query + tooltips) and the U1 app shell (fixed left sidebar,
+// expanded only); the main panel renders the active surface. Desktop 1440.
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { Providers } from "@/components/providers";
 import { AppSidebar } from "@/components/shell/app-sidebar";
 import "./globals.css";
 
@@ -25,12 +25,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}>
-        <TooltipProvider>
+        <Providers>
           <div className="flex min-h-screen">
             <AppSidebar />
             <div className="min-w-0 flex-1">{children}</div>
           </div>
-        </TooltipProvider>
+        </Providers>
       </body>
     </html>
   );

@@ -1,9 +1,9 @@
 // meta: FlagRow primitive (DESIGN.md): property icon, mono snippet + location,
 // VerdictTags (delta 2), then LifecycleChip or Dismiss/Confirm actions, and an
-// "Open ›" link to flag detail. Row Confirm opens the inline assign strip
-// (team + note, prototype 3g state 1). Dismissed rows: muted + strikethrough
-// snippet + Undo. Lifecycle comes from the client flag store so dispositions
-// made here are visible on U7 and vice versa.
+// "Open ›" link to flag detail. Dispositions POST to the API via the
+// useDisposition mutation (optimistic through the flag store); a 409 or
+// network failure reverts the row and shows an inline error line. No Undo:
+// the lifecycle state machine has no reverse transitions.
 
 "use client";
 
@@ -15,7 +15,7 @@ import { LifecycleChip } from "@/components/primitives/lifecycle-chip";
 import { PropertyIcon } from "@/components/primitives/property-chip";
 import { VerdictTags } from "@/components/primitives/verdict-tags";
 import { useFlagStore } from "@/lib/flag-store";
-import type { FlagView } from "@/lib/data";
+import { useDisposition, type FlagView } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
 export const TEAMS = ["Social", "Web", "Growth", "Legal"] as const;
@@ -30,10 +30,13 @@ export function FlagRow({
   className?: string;
 }) {
   const { flag, material, property, meta } = view;
-  const lifecycle = useFlagStore((s) => s.lifecycles[flag.id]);
-  const confirm = useFlagStore((s) => s.confirm);
-  const dismiss = useFlagStore((s) => s.dismiss);
-  const undo = useFlagStore((s) => s.undo);
+  const lifecycle = useFlagStore((s) => s.lifecycles[flag.id]) ?? {
+    state: flag.state,
+    team: flag.assigned_team,
+    note: flag.note,
+  };
+  const error = useFlagStore((s) => s.errors[flag.id]);
+  const disposition = useDisposition(productId);
   const [assigning, setAssigning] = useState(false);
   const [team, setTeam] = useState<string>("");
   const [note, setNote] = useState("");
@@ -72,7 +75,7 @@ export function FlagRow({
           </span>
           <span className="text-xs text-muted-foreground">
             {flag.verdicts.location} ·{" "}
-            <span className="font-mono">{flag.id}</span>
+            <span className="font-mono">{shortId(flag.id)}</span>
           </span>
           {dismissed && lifecycle.note ? (
             <span className="text-xs text-muted-foreground">
@@ -84,6 +87,11 @@ export function FlagRow({
             </span>
           )}
           {!dismissed ? <VerdictTags verdicts={flag.verdicts} /> : null}
+          {error ? (
+            <span className="text-xs font-medium text-danger-text">
+              {error}
+            </span>
+          ) : null}
         </div>
         <div className="flex flex-none items-center gap-2 pt-0.5">
           {untriaged && !assigning ? (
@@ -91,33 +99,32 @@ export function FlagRow({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => dismiss(flag.id)}
+                disabled={disposition.isPending}
+                onClick={() =>
+                  disposition.mutate({ flagId: flag.id, action: "dismiss" })
+                }
               >
                 Dismiss
               </Button>
-              <Button size="sm" onClick={() => setAssigning(true)}>
+              <Button
+                size="sm"
+                disabled={disposition.isPending}
+                onClick={() => setAssigning(true)}
+              >
                 Confirm
               </Button>
             </>
           ) : !untriaged ? (
             <LifecycleChip state={lifecycle.state} team={lifecycle.team} />
           ) : null}
-          {dismissed ? (
-            <button
-              type="button"
-              onClick={() => undo(flag.id)}
-              className="text-xs font-medium text-primary hover:underline"
-            >
-              Undo
-            </button>
-          ) : (
+          {!dismissed ? (
             <Link
               href={href}
               className="whitespace-nowrap text-xs font-medium text-primary hover:underline"
             >
               Open ›
             </Link>
-          )}
+          ) : null}
         </div>
       </div>
       {assigning ? (
@@ -149,9 +156,14 @@ export function FlagRow({
           <div className="flex gap-2">
             <Button
               size="sm"
-              disabled={!team}
+              disabled={!team || disposition.isPending}
               onClick={() => {
-                confirm(flag.id, team, note);
+                disposition.mutate({
+                  flagId: flag.id,
+                  action: "confirm",
+                  team,
+                  note: note || undefined,
+                });
                 setAssigning(false);
               }}
             >
@@ -174,4 +186,8 @@ export function FlagRow({
 
 function truncate(s: string, n: number): string {
   return s.length > n ? `${s.slice(0, n - 3)}...` : s;
+}
+
+function shortId(id: string): string {
+  return id.length > 12 ? id.slice(0, 8) : id;
 }

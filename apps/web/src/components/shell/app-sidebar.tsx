@@ -2,7 +2,7 @@
 // scorecard button (U4 deferred, inert in MVP1), New check primary CTA
 // (opens the U3 modal), PRODUCTS list with status dots (DESIGN.md tokens:
 // clear = success, flagged = warning, checking = primary) + open-flag count,
-// user chip at bottom. Layout composition per prototype 3a/3i.
+// user chip at bottom. Product list from useProducts (API + demo cards).
 
 "use client";
 
@@ -11,7 +11,7 @@ import { usePathname } from "next/navigation";
 import { Plus, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NewCheckModal } from "@/components/shell/new-check-modal";
-import { getProducts } from "@/lib/data";
+import { useProducts } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
 const DOT: Record<string, string> = {
@@ -23,7 +23,7 @@ const DOT: Record<string, string> = {
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const products = getProducts();
+  const { products } = useProducts();
 
   return (
     <aside className="flex w-64 flex-none flex-col border-r border-border bg-surface">

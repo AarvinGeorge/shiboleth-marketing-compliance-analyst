@@ -1,9 +1,11 @@
-// meta: U7 flag detail (/products/[id]/flags/[flagId]). Breadcrumb Dashboard ›
-// product › flag; header with SeverityBadge, title, rule id and found time;
-// three-tag verdict group + one-line explainer; extracted-text evidence panel
-// with the span highlighted (swappable on modality); lifecycle strip (delta 3)
-// above the Disposition panel; flag facts; compact 5-step why-flagged chain
-// with one expandable step. Reads via lib/data; lifecycle via the flag store.
+// meta: U7 flag detail (/products/[id]/flags/[flagId]), API-backed via
+// useFlagView. Breadcrumb Dashboard › product › flag; header with
+// SeverityBadge, title (real cluster label), check id; three-tag verdict
+// group + one-line explainer (first sentence of the real checker reason);
+// evidence panel highlighting the API-served evidence_quote with the full
+// reason below; lifecycle strip (delta 3) above the Disposition panel (live
+// POST dispositions); flag facts incl. verbatim rule text via RuleText;
+// compact why-flagged chain whose verdict step expands to the real reason.
 
 "use client";
 
@@ -11,11 +13,14 @@ import { use } from "react";
 import Link from "next/link";
 import { SeverityBadge } from "@/components/primitives/severity-badge";
 import { VerdictTags } from "@/components/primitives/verdict-tags";
-import { LifecycleStrip, lifecycleLabel } from "@/components/primitives/lifecycle-chip";
+import {
+  LifecycleStrip,
+  lifecycleLabel,
+} from "@/components/primitives/lifecycle-chip";
 import { EvidencePanel } from "@/components/surfaces/evidence-panel";
 import { DispositionPanel } from "@/components/surfaces/disposition-panel";
 import { WhyFlagged } from "@/components/surfaces/why-flagged";
-import { getFlagView, getProduct } from "@/lib/data";
+import { useFlagView, useProductView } from "@/lib/data";
 import { useFlagStore } from "@/lib/flag-store";
 import { RuleText } from "@/lib/render-rule-text";
 
@@ -25,11 +30,20 @@ export default function FlagDetailPage({
   params: Promise<{ id: string; flagId: string }>;
 }) {
   const { id, flagId } = use(params);
-  const product = getProduct(id);
-  const view = getFlagView(flagId);
-  const lifecycle = useFlagStore((s) => s.lifecycles[flagId]);
+  const { summary } = useProductView(id);
+  const { view, isLoading } = useFlagView(id, flagId);
+  const storeLifecycle = useFlagStore((s) => s.lifecycles[flagId]);
 
-  if (!product || !view || !lifecycle) {
+  if (isLoading) {
+    return (
+      <main className="flex flex-col gap-3 px-11 pb-14 pt-7">
+        <div className="h-5 w-72 animate-pulse rounded-sm bg-surface" />
+        <div className="h-64 animate-pulse rounded-lg border border-border bg-surface" />
+      </main>
+    );
+  }
+
+  if (!summary || !view) {
     return (
       <main className="px-11 pt-9 text-sm text-muted-foreground">
         Flag not found.{" "}
@@ -41,6 +55,11 @@ export default function FlagDetailPage({
   }
 
   const { flag, cluster, rule, check, meta } = view;
+  const lifecycle = storeLifecycle ?? {
+    state: flag.state,
+    team: flag.assigned_team,
+    note: flag.note,
+  };
 
   return (
     <main className="flex flex-col px-11 pb-14 pt-7">
@@ -50,9 +69,9 @@ export default function FlagDetailPage({
         </Link>{" "}
         <span className="text-border">›</span>{" "}
         <Link href={`/products/${id}`} className="text-primary hover:underline">
-          {product.name}
+          {summary.name}
         </Link>{" "}
-        <span className="text-border">›</span> Flag {flag.id}
+        <span className="text-border">›</span> Flag {shortId(flag.id)}
       </div>
 
       <div className="mb-2 flex items-center gap-2.5">
@@ -64,8 +83,8 @@ export default function FlagDetailPage({
           <span className="font-mono">{check.id}</span> · {meta.foundAt}
         </span>
       </div>
-      <div className="mb-6 flex items-center gap-3">
-        <VerdictTags verdicts={flag.verdicts} />
+      <div className="mb-6 flex items-start gap-3">
+        <VerdictTags verdicts={flag.verdicts} className="flex-none" />
         <span className="text-xs text-muted-foreground">{meta.explainer}</span>
       </div>
 
@@ -80,7 +99,15 @@ export default function FlagDetailPage({
             <LifecycleStrip state={lifecycle.state} team={lifecycle.team} />
           </div>
 
-          <DispositionPanel flagId={flag.id} />
+          <DispositionPanel
+            flagId={flag.id}
+            productId={id}
+            fallback={{
+              state: flag.state,
+              team: flag.assigned_team,
+              note: flag.note,
+            }}
+          />
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col gap-4">
@@ -91,26 +118,26 @@ export default function FlagDetailPage({
                 {rule.id} · check {check.id}
               </span>
             </FactRow>
-            <div className="rounded-md border border-border/60 bg-surface px-3 py-2">
-              <RuleText
-                text={rule.verbatim_text}
-                className="font-mono text-[11px] leading-relaxed text-foreground/70"
-              />
-            </div>
+            {rule.verbatim_text ? (
+              <div className="rounded-md border border-border/60 bg-surface px-3 py-2">
+                <RuleText
+                  text={rule.verbatim_text}
+                  className="font-mono text-[11px] leading-relaxed text-foreground/70"
+                />
+              </div>
+            ) : null}
             <FactRow label="Linked library entry">
               <span className="font-mono text-xs">
                 {check.library_entry_id ?? "none"}
               </span>
             </FactRow>
             <FactRow label="Cluster">
-              <span className="text-xs">
-                {cluster.label} ({cluster.flagIds.length} flags)
-              </span>
+              <span className="text-xs">{cluster.label}</span>
             </FactRow>
             <FactRow label="Status">
               <span className="text-xs">
                 {lifecycle.state === "open"
-                  ? `Awaiting triage · ${meta.foundAt}`
+                  ? "Awaiting triage"
                   : lifecycleLabel(lifecycle.state, lifecycle.team)}
               </span>
             </FactRow>
@@ -144,4 +171,8 @@ function FactRow({
       {children}
     </div>
   );
+}
+
+function shortId(id: string): string {
+  return id.length > 12 ? id.slice(0, 8) : id;
 }
