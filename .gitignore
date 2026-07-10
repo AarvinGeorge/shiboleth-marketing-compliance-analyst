@@ -26,3 +26,9 @@ ms-playwright/
 
 # OS
 .DS_Store
+
+# Next.js
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts

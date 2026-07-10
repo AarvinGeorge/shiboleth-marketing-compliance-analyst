@@ -1,0 +1,104 @@
+/* meta: global styles + design tokens. The :root variables ARE the DESIGN.md
+   YAML front matter (normative token source); shadcn semantic variables map
+   onto them. Light theme only for v1 (desktop 1440, banking-trust aesthetic).
+   Do not add colors that are not in DESIGN.md. */
+
+@import "tailwindcss";
+@import "tw-animate-css";
+
+:root {
+  /* --- DESIGN.md tokens (verbatim from the YAML front matter) --- */
+  --ds-primary: #2563eb;
+  --ds-on-primary: #ffffff;
+  --ds-foreground: #0a0a0a;
+  --ds-secondary: #71717a;
+  --ds-neutral: #ffffff;
+  --ds-surface: #fafafa;
+  --ds-border: #e4e4e7;
+  --ds-success: #16a34a;
+  --ds-success-bg: #f0fdf4;
+  --ds-success-text: #15803d;
+  --ds-warning: #d97706;
+  --ds-warning-bg: #fffbeb;
+  --ds-warning-text: #b45309;
+  --ds-danger: #dc2626;
+  --ds-danger-bg: #fef2f2;
+  --ds-danger-text: #b91c1c;
+  --ds-accent-bg: #eff6ff;
+  --ds-accent-text: #1d4ed8;
+
+  --ds-rounded-sm: 6px;
+  --ds-rounded-md: 8px;
+  --ds-rounded-lg: 12px;
+  --ds-rounded-pill: 999px;
+
+  /* --- shadcn semantic mapping --- */
+  --background: var(--ds-neutral);
+  --foreground: var(--ds-foreground);
+  --card: var(--ds-neutral);
+  --card-foreground: var(--ds-foreground);
+  --popover: var(--ds-neutral);
+  --popover-foreground: var(--ds-foreground);
+  --primary: var(--ds-primary);
+  --primary-foreground: var(--ds-on-primary);
+  --secondary: var(--ds-surface);
+  --secondary-foreground: var(--ds-foreground);
+  --muted: var(--ds-surface);
+  --muted-foreground: var(--ds-secondary);
+  --accent: var(--ds-accent-bg);
+  --accent-foreground: var(--ds-accent-text);
+  --destructive: var(--ds-danger);
+  --destructive-foreground: var(--ds-on-primary);
+  --border: var(--ds-border);
+  --input: var(--ds-border);
+  --ring: var(--ds-primary);
+  --radius: var(--ds-rounded-md);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* semantic tints, exposed as Tailwind colors (badge-* components) */
+  --color-success: var(--ds-success);
+  --color-success-bg: var(--ds-success-bg);
+  --color-success-text: var(--ds-success-text);
+  --color-warning: var(--ds-warning);
+  --color-warning-bg: var(--ds-warning-bg);
+  --color-warning-text: var(--ds-warning-text);
+  --color-danger: var(--ds-danger);
+  --color-danger-bg: var(--ds-danger-bg);
+  --color-danger-text: var(--ds-danger-text);
+  --color-surface: var(--ds-surface);
+
+  --radius-sm: var(--ds-rounded-sm);
+  --radius-md: var(--ds-rounded-md);
+  --radius-lg: var(--ds-rounded-lg);
+  --radius-pill: var(--ds-rounded-pill);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}

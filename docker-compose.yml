@@ -1,0 +1,24 @@
+# meta: local Postgres 16 + pgvector for Shiboleth (01_spec §5 data model).
+# One database plays SQL + JSONB + pgvector roles (04 §4 locked decision).
+# DATABASE_URL default in .env.example matches these credentials.
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: shiboleth-postgres
+    environment:
+      POSTGRES_USER: shiboleth
+      POSTGRES_PASSWORD: shiboleth
+      POSTGRES_DB: shiboleth
+    ports:
+      - "5432:5432"
+    volumes:
+      - shiboleth_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shiboleth -d shiboleth"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  shiboleth_pgdata:
