@@ -5,7 +5,7 @@
 
 "use client";
 
-import { Area, AreaChart, Line, LineChart } from "recharts";
+import { Area, AreaChart, Line, LineChart, YAxis } from "recharts";
 import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
 
 const chartConfig = {
@@ -30,6 +30,7 @@ export function Sparkline({
     >
       {kind === "area" ? (
         <AreaChart data={rows} margin={{ top: 2, right: 0, bottom: 0, left: 0 }}>
+          <YAxis hide domain={["dataMin - 2", "dataMax + 2"]} />
           <Area
             dataKey="v"
             type="monotone"
@@ -42,6 +43,7 @@ export function Sparkline({
         </AreaChart>
       ) : (
         <LineChart data={rows} margin={{ top: 2, right: 0, bottom: 0, left: 0 }}>
+          <YAxis hide domain={["dataMin - 2", "dataMax + 2"]} />
           <Line
             dataKey="v"
             type="monotone"

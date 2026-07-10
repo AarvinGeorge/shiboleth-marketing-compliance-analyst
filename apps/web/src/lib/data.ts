@@ -127,5 +127,6 @@ export function extractPropertiesFromText(text: string): ExtractedProperty[] {
     }
     push("website", host);
   }
-  return found;
+  const order: PropertyKind[] = ["website", "instagram", "facebook"];
+  return found.sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind));
 }
