@@ -1,12 +1,11 @@
-// meta: client-side disposition state for fixture mode (zustand). Holds the
-// mutable lifecycle slice of each flag (state, team, note) seeded from
-// fixtures; U6 rows and U7's Disposition panel both read and write it so a
-// disposition made anywhere is visible everywhere. At M4 the actions become
-// POST /flags/{id}/disposition calls and the store becomes the optimistic
-// cache. Undo restores the seeded fixture state.
+// meta: client lifecycle state for flags (zustand). Seeded from API flag
+// payloads as they load; disposition mutations write optimistically, then
+// reconcile with the server's returned {flag} (server is the source of
+// truth; a 409/network error reverts the optimistic write and surfaces an
+// inline per-flag error). No Undo anymore: the M4 lifecycle state machine
+// has no reverse transitions (dismissed is terminal).
 
 import { create } from "zustand";
-import { flags } from "@/lib/fixtures";
 import type { FlagState } from "@/lib/types";
 
 export interface FlagLifecycle {
@@ -17,62 +16,19 @@ export interface FlagLifecycle {
 
 interface FlagStore {
   lifecycles: Record<string, FlagLifecycle>;
-  confirm: (flagId: string, team: string, note: string) => void;
-  dismiss: (flagId: string, note?: string) => void;
-  confirmAll: (flagIds: string[]) => void;
-  dismissAll: (flagIds: string[]) => void;
-  undo: (flagId: string) => void;
+  errors: Record<string, string | null>;
+  seed: (entries: Record<string, FlagLifecycle>) => void;
+  setLifecycle: (flagId: string, lifecycle: FlagLifecycle) => void;
+  setError: (flagId: string, message: string | null) => void;
 }
 
-const seeded: Record<string, FlagLifecycle> = Object.fromEntries(
-  flags.map((f) => [
-    f.id,
-    { state: f.state, team: f.assigned_team, note: f.note },
-  ])
-);
-
 export const useFlagStore = create<FlagStore>((set) => ({
-  lifecycles: { ...seeded },
-  confirm: (flagId, team, note) =>
-    set((s) => ({
-      lifecycles: {
-        ...s.lifecycles,
-        [flagId]: {
-          state: team ? "assigned" : "confirmed",
-          team: team || null,
-          note: note || null,
-        },
-      },
-    })),
-  dismiss: (flagId, note) =>
-    set((s) => ({
-      lifecycles: {
-        ...s.lifecycles,
-        [flagId]: { state: "dismissed", team: null, note: note ?? null },
-      },
-    })),
-  confirmAll: (flagIds) =>
-    set((s) => {
-      const next = { ...s.lifecycles };
-      for (const id of flagIds) {
-        if (next[id]?.state === "open") {
-          next[id] = { state: "confirmed", team: null, note: null };
-        }
-      }
-      return { lifecycles: next };
-    }),
-  dismissAll: (flagIds) =>
-    set((s) => {
-      const next = { ...s.lifecycles };
-      for (const id of flagIds) {
-        if (next[id]?.state === "open") {
-          next[id] = { state: "dismissed", team: null, note: null };
-        }
-      }
-      return { lifecycles: next };
-    }),
-  undo: (flagId) =>
-    set((s) => ({
-      lifecycles: { ...s.lifecycles, [flagId]: { ...seeded[flagId] } },
-    })),
+  lifecycles: {},
+  errors: {},
+  seed: (entries) =>
+    set((s) => ({ lifecycles: { ...s.lifecycles, ...entries } })),
+  setLifecycle: (flagId, lifecycle) =>
+    set((s) => ({ lifecycles: { ...s.lifecycles, [flagId]: lifecycle } })),
+  setError: (flagId, message) =>
+    set((s) => ({ errors: { ...s.errors, [flagId]: message } })),
 }));
