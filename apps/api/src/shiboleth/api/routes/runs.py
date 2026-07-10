@@ -78,6 +78,13 @@ class PasteRequest(BaseModel):
     text: str
 
 
+class SkipRequest(BaseModel):
+    # skip carries no content: the UI sends {property_id} only. Reusing
+    # PasteRequest here made text required -> 422 -> inescapable paste dialog
+    # (blocked website-only analysis; Aarvin 2026-07-10).
+    property_id: str
+
+
 @router.post("/runs/{run_id}/paste-content")
 async def paste_content(run_id: str, body: PasteRequest, request: Request) -> dict:
     app = request.app
@@ -92,7 +99,7 @@ async def paste_content(run_id: str, body: PasteRequest, request: Request) -> di
 
 
 @router.post("/runs/{run_id}/skip-property")
-async def skip_property(run_id: str, body: PasteRequest, request: Request) -> dict:
+async def skip_property(run_id: str, body: SkipRequest, request: Request) -> dict:
     app = request.app
     invoke, labeler = _pipeline_deps(app.state.settings)
     from shiboleth.pipeline.live_run import register_skip, resume_checking
