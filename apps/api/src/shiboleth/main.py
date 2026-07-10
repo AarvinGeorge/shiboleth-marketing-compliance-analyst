@@ -22,18 +22,28 @@ from shiboleth.config import Settings, load_settings
 logger = logging.getLogger("shiboleth")
 
 
-def _propagate_langsmith(settings: Settings) -> None:
-    """LangChain reads LangSmith config from process env; set it once here."""
+def propagate_env(settings: Settings) -> None:
+    """LangChain integrations read secrets and LangSmith config from process
+    env, not from our Settings object; export them once here (the ONLY place
+    besides config.py that handles secrets). Blank/absent values not written."""
     os.environ["LANGSMITH_TRACING"] = "true" if settings.langsmith_tracing else "false"
     os.environ["LANGSMITH_PROJECT"] = settings.langsmith_project
-    if settings.langsmith_api_key:
-        os.environ["LANGSMITH_API_KEY"] = settings.langsmith_api_key
+    exports = {
+        "LANGSMITH_API_KEY": settings.langsmith_api_key,
+        "GOOGLE_API_KEY": settings.google_api_key,
+        "GROQ_API_KEY": settings.groq_api_key,
+        "OPENAI_API_KEY": settings.openai_api_key,
+        "ANTHROPIC_API_KEY": settings.anthropic_api_key,
+    }
+    for key, value in exports.items():
+        if value:
+            os.environ[key] = value
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     settings = load_settings()  # raises EnvError -> startup aborts, by design
-    _propagate_langsmith(settings)
+    propagate_env(settings)
     logger.info("Shiboleth env verified:\n%s", settings.masked_echo())
     app.state.settings = settings
     yield

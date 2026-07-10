@@ -77,11 +77,13 @@ class TestMask:
 
 class TestModelRegistry:
     def test_defaults_per_stage(self):
+        # gemini-3.5-flash, not 2.5: Google 404s 2.5-flash for keys created
+        # after the 3.x rollout ("no longer available to new users").
         settings = make_settings()
-        assert settings.model_for("extract") == "google_genai:gemini-2.5-flash"
-        assert settings.model_for("check") == "google_genai:gemini-2.5-flash"
+        assert settings.model_for("extract") == "google_genai:gemini-3.5-flash"
+        assert settings.model_for("check") == "google_genai:gemini-3.5-flash"
         assert settings.model_for("cluster_label") == "groq:llama-3.3-70b-versatile"
-        assert settings.model_for("report") == "google_genai:gemini-2.5-flash"
+        assert settings.model_for("report") == "google_genai:gemini-3.5-flash"
 
     def test_env_override_wins(self):
         settings = make_settings(DEFAULT_MODEL_CHECK="anthropic:claude-sonnet-5")

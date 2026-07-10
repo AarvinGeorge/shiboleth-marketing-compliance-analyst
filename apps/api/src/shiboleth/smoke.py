@@ -15,12 +15,12 @@ import sys
 from langchain.chat_models import init_chat_model
 
 from shiboleth.config import load_settings
-from shiboleth.main import _propagate_langsmith
+from shiboleth.main import propagate_env
 
 
 def main() -> int:
     settings = load_settings()
-    _propagate_langsmith(settings)
+    propagate_env(settings)
     print("Env verified:")
     print(settings.masked_echo())
 

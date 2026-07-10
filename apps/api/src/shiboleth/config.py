@@ -27,13 +27,15 @@ ENV_FILE = REPO_ROOT / ".env"
 
 REQUIRED_KEYS = ("DATABASE_URL", "LANGSMITH_API_KEY", "GOOGLE_API_KEY", "GROQ_API_KEY")
 
-# Stage -> (env override var, default init_chat_model string). 01_spec §4:
-# Gemini 2.5 Flash for extract/check/report, Groq for cluster labeling.
+# Stage -> (env override var, default init_chat_model string). 01_spec §4
+# named Gemini 2.5 Flash; pinned to 3.5-flash because Google blocks 2.5-flash
+# for newly created keys (404 "no longer available to new users", 2026-07).
+# Pinned, never "-latest": the E3 loop and base condition need a stable model id.
 MODEL_STAGES: dict[str, tuple[str, str]] = {
-    "extract": ("DEFAULT_MODEL_EXTRACT", "google_genai:gemini-2.5-flash"),
-    "check": ("DEFAULT_MODEL_CHECK", "google_genai:gemini-2.5-flash"),
+    "extract": ("DEFAULT_MODEL_EXTRACT", "google_genai:gemini-3.5-flash"),
+    "check": ("DEFAULT_MODEL_CHECK", "google_genai:gemini-3.5-flash"),
     "cluster_label": ("DEFAULT_MODEL_CLUSTER_LABEL", "groq:llama-3.3-70b-versatile"),
-    "report": ("DEFAULT_MODEL_REPORT", "google_genai:gemini-2.5-flash"),
+    "report": ("DEFAULT_MODEL_REPORT", "google_genai:gemini-3.5-flash"),
 }
 
 LANGSMITH_PROJECT_DEFAULT = "shiboleth-marketing-compliance-analyst-project"
