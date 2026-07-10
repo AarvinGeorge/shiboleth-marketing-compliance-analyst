@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# lane-b progress screenshots (local artifacts, not for the repo)
+.progress/
