@@ -77,13 +77,11 @@ class TestMask:
 
 class TestModelRegistry:
     def test_defaults_per_stage(self):
-        # gemini-3.5-flash, not 2.5: Google 404s 2.5-flash for keys created
-        # after the 3.x rollout ("no longer available to new users").
+        # Groq primary on all stages (Aarvin 2026-07-10); Gemini = fallback
+        # via DEFAULT_MODEL_* env overrides.
         settings = make_settings()
-        assert settings.model_for("extract") == "google_genai:gemini-3.5-flash"
-        assert settings.model_for("check") == "groq:llama-3.3-70b-versatile"
-        assert settings.model_for("cluster_label") == "groq:llama-3.3-70b-versatile"
-        assert settings.model_for("report") == "google_genai:gemini-3.5-flash"
+        for stage in ("extract", "check", "cluster_label", "report"):
+            assert settings.model_for(stage) == "groq:llama-3.3-70b-versatile"
 
     def test_env_override_wins(self):
         settings = make_settings(DEFAULT_MODEL_CHECK="anthropic:claude-sonnet-5")
