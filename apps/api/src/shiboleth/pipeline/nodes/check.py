@@ -40,6 +40,12 @@ class CheckerVerdict(BaseModel):
     location: str = Field(description="Where in the material the evidence sits.")
     reason: str = Field(description="Concise analyst reasoning for the verdict.")
     confidence: float = Field(ge=0.0, le=1.0)
+    ambiguous: bool = Field(
+        default=False,
+        description="True ONLY when the verdict is a genuine judgment call the "
+        "analyst should review, per the rule's evidence criteria (e.g. the "
+        "primary claim carries the disclosure but secondary mentions do not).",
+    )
 
 
 @dataclass(frozen=True)
@@ -125,13 +131,17 @@ def build_prompt(
 
 _WS = re.compile(r"\s+")
 _MD_EMPHASIS = re.compile(r"[*_`]+")
+_MD_LINK = re.compile(r"\[([^\]]*)\]\([^)]*\)")
 
 
 def _normalize(text: str) -> str:
-    """Whitespace-collapse + case-fold + markdown-emphasis strip. Models quote
-    the TEXT, not its **bold** markers (iter-7 postmortem: a correct footer
-    drift verdict degraded to needs_review over asterisks). Content characters
-    are never altered — 'Roughly 37%' still does not match '~37%'."""
+    """Whitespace-collapse + case-fold + markdown syntax strip: emphasis
+    markers (iter-7 postmortem) and link wrappers [text](url) -> text
+    (iter-10 postmortem: the P04 disclosure rendered as a link failed the
+    axis-B verbatim comparison on markup, not wording). Markdown is
+    RENDERING; content characters are never altered — 'Roughly 37%' still
+    does not match '~37%'."""
+    text = _MD_LINK.sub(r"\1", text)
     return _WS.sub(" ", _MD_EMPHASIS.sub("", text)).strip().lower()
 
 
@@ -198,12 +208,14 @@ def run_check(
     tag, approval_na = derive_intersection(axis_a, axis_b)
 
     evidence_valid = evidence_in_material(verdict.evidence_quote, material_text)
-    if evidence_valid:
+    if not evidence_valid:
+        verdict_status = "needs_review"  # guardrail 4: invalid evidence degrades
+    elif verdict.ambiguous:
+        verdict_status = "needs_review"  # analyst judgment call (Aarvin ruling A)
+    else:
         # a flag arises from EITHER axis: non-compliant (A) or drifted from
         # approval (B False) — drift is a finding type (04 §6e; GT-F03)
         verdict_status = "pass" if axis_a and axis_b is not False else "flag"
-    else:
-        verdict_status = "needs_review"  # guardrail 4: invalid evidence degrades
 
     return CheckOutcome(
         verdict_status=verdict_status,

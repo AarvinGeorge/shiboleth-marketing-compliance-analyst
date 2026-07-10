@@ -212,7 +212,7 @@ def _evidence_overlap(quote_a: str, quote_b: str) -> bool:
     return len(tokens_a & tokens_b) / min(len(tokens_a), len(tokens_b)) > 0.4
 
 
-def score(outcomes, subset: set[str] | None = None) -> dict:
+def score(outcomes, subset: set[str] | None = None, footer_text: str = "") -> dict:
     gt = json.loads((GROUND_TRUTH_DIR / "ground_truth.json").read_text(encoding="utf-8"))
     records = gt["records"]
     strict_hits, strict_total = 0.0, 0
@@ -241,6 +241,18 @@ def score(outcomes, subset: set[str] | None = None) -> dict:
         else:  # analyst page records + screened_policy
             outcome = outcomes.get((page, rule_id, "page"))
             got = system_verdict(outcome)
+            # Ruling B (Aarvin 2026-07-10): a page record whose GT evidence
+            # actually lives in the shared footer TEXT is matched against the
+            # footer verdict — the judgment exists, bookkept on footer scope.
+            # (Compare against the footer text, not the footer verdict's own
+            # chosen quote: two different footer passages both live there.)
+            if got == "not_applicable" and rec.get("evidence_quote") and footer_text:
+                footer_outcome = outcomes.get((page, rule_id, "footer"))
+                if footer_outcome is not None and _evidence_overlap(
+                    rec["evidence_quote"], footer_text
+                ):
+                    outcome = footer_outcome
+                    got = system_verdict(footer_outcome)
 
         expected = rec["verdict_status"]
 
@@ -329,7 +341,11 @@ def main() -> int:
                inputs={"subset": args.subset or "FULL",
                        "model": settings.model_for("check")}) as run:
         outcomes = corpus_outcomes(invoke, subset)
-        result = score(outcomes, subset)
+        snapshots = load_corpus(GROUND_TRUTH_DIR / "snapshots")
+        footer_text = "\n\n".join(
+            detect_shared_block([d.body for d in snapshots], min_pages=20)
+        )
+        result = score(outcomes, subset, footer_text=footer_text)
         run.end(outputs={k: v for k, v in result.items() if k != "misses"})
 
     result["run_seconds"] = round(time.monotonic() - started, 1)

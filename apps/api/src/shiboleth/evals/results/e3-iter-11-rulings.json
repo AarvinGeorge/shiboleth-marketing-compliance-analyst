@@ -1,0 +1,53 @@
+{
+ "strict_accuracy": 0.9799,
+ "strict_n": 199,
+ "per_class": {
+  "analyst": 0.8261,
+  "footer_inherited": 1.0
+ },
+ "per_rule": {
+  "R-01": 0.9464,
+  "R-02": 1.0,
+  "R-03": 1.0,
+  "R-04": 0.9792
+ },
+ "synthetics": "17/17",
+ "synthetics_pct": 1.0,
+ "evidence_validity": 1.0,
+ "flags_emitted": 61,
+ "ambiguity_recognition": {
+  "analyst": "6/7 (86%)",
+  "footer_inherited": "44/44 (100%)",
+  "screened_policy": "36/144 (25%)"
+ },
+ "misses": [
+  {
+   "id": "GT-P02-02",
+   "expected": "flag",
+   "got": "pass",
+   "credit": 0.0
+  },
+  {
+   "id": "GT-P03-01",
+   "expected": "not_applicable",
+   "got": "flag",
+   "credit": 0.0
+  },
+  {
+   "id": "GT-P09-01",
+   "expected": "pass",
+   "got": "flag",
+   "credit": 0.0
+  },
+  {
+   "id": "GT-P20-01",
+   "expected": "not_applicable",
+   "got": "flag",
+   "credit": 0.0
+  }
+ ],
+ "run_seconds": 216.4,
+ "llm_calls_live": 58,
+ "llm_calls_cached": 113,
+ "full_run": true
+}

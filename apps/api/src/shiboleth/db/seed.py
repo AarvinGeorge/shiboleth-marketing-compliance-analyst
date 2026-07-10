@@ -44,7 +44,7 @@ CHECKS: list[dict] = [
     {
         "id": "R-01-REQ", "rule_id": "R-01", "kind": "requirement",
         "text": "Is the eligibility disclosure (D-01) present right underneath the free mention?",
-        "evidence_criteria": "The disclosure text matching D-01 positioned directly beneath/adjacent to the free claim; quote the disclosure as published (position matters: 'right underneath' is an attribution requirement).",
+        "evidence_criteria": "The disclosure text matching D-01 positioned directly beneath/adjacent to the PRIMARY free claim; quote the disclosure as published (position matters: 'right underneath' is an attribution requirement). Judgment calls go to the analyst, not to a flag: set ambiguous=true (instead of failing) when the disclosure IS present near the claim but its placement could be debated (a separate block, footnote, or quote box), or when the primary claim carries it while secondary mentions (navigation, buttons, closing CTAs) do not. Fail outright only when the disclosure is absent or clearly detached from the free claim.",
         "library_entry_id": "D-01",
     },
     {

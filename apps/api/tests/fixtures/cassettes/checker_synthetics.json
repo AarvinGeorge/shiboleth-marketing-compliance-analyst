@@ -11,6 +11,19 @@
    "trigger_met": true
   }
  },
+ "075c9c0fb1d1890f445772143c3a3bcc4c24c775bad84bcb169285ac7737d037": {
+  "model": "anthropic:claude-haiku-4-5",
+  "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
+  "verdict": {
+   "ambiguous": false,
+   "confidence": 0.95,
+   "evidence_quote": "TaxCo Free: $0 federal, $0 state, $0 to file. Start your free return today.",
+   "location": "Opening headline of the material",
+   "reason": "The material triggers the rule with the explicit free-filing claim \"$0 to file\" in the primary headline. However, the required disclosure\u2014\"~37% of filers qualify. Simple Form 1040 returns only (no schedules, except for EITC, CTC, student loan interest, and Schedule 1-A)\"\u2014is entirely absent. The fine print reference to \"simple returns\" and \"terms\" does not constitute the mandated disclosure and is not positioned right underneath the free claim. The requirement is not met.",
+   "requirement_met": false,
+   "trigger_met": true
+  }
+ },
  "0bd165d36da02098330d56cd4b8f337c3c2a0eb2260e6b1cfbffbd3ff494a304": {
   "model": "anthropic:claude-haiku-4-5",
   "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
@@ -71,6 +84,19 @@
    "trigger_met": false
   }
  },
+ "28b5a1056b050f8b6374c2a2c8c2f1a65e08dc97f5cf643c5de778207c7126df": {
+  "model": "anthropic:claude-haiku-4-5",
+  "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
+  "verdict": {
+   "ambiguous": false,
+   "confidence": 0.99,
+   "evidence_quote": "File your taxes 100% free with TaxCo Free. No catches, everyone files free. Start now and pay nothing, ever.",
+   "location": "Opening paragraph of material",
+   "reason": "The material triggers the rule by making a free-filing claim (\"File your taxes 100% free with TaxCo Free\" and \"everyone files free\"). However, the required eligibility disclosure (~37% of filers qualify with the specified limitations) is completely absent from the material. The disclosure must appear right underneath the primary free claim, and it does not appear anywhere in the provided text.",
+   "requirement_met": false,
+   "trigger_met": true
+  }
+ },
  "2e6d032582fc088f81ce61e7b29589c052001a45aa213c4f9b79d03c988eab89": {
   "model": "anthropic:claude-haiku-4-5",
   "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
@@ -80,6 +106,32 @@
    "location": "First sentence of the material",
    "reason": "The material advertises \"NeoSave,\" which is explicitly described as a deposit product (\"Save with NeoSave. Deposits are...\"), triggering the rule. The FDIC insurance language states the deposit product is FDIC-insured up to $250,000 through the named partner bank (Partner Trust Bank), satisfying all requirement criteria: the $250,000 limit, FDIC-insured designation, and the partner bank name.",
    "requirement_met": true,
+   "trigger_met": true
+  }
+ },
+ "2fc8aecd582622196e1043c03a2355abdc73c1cb918447faf595f5e0133e0f92": {
+  "model": "anthropic:claude-haiku-4-5",
+  "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
+  "verdict": {
+   "ambiguous": false,
+   "confidence": 0.99,
+   "evidence_quote": "File free with TaxCo Free Edition. ~37% of filers qualify. Simple Form 1040 returns only (no schedules, except for EITC, CTC, student loan interest, and Schedule 1-A).",
+   "location": "Opening sentence of the material",
+   "reason": "The material triggers the rule with \"File free with TaxCo Free Edition.\" The required disclosure is present immediately adjacent to the free claim: \"~37% of filers qualify. Simple Form 1040 returns only (no schedules, except for EITC, CTC, student loan interest, and Schedule 1-A).\" appears directly underneath and matches the approved D-01 text exactly, satisfying the positional requirement.",
+   "requirement_met": true,
+   "trigger_met": true
+  }
+ },
+ "3ac8913d236703d54db9b2a3c70109275ada46bf4c96987eeb271dc1c2d8790c": {
+  "model": "anthropic:claude-haiku-4-5",
+  "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
+  "verdict": {
+   "ambiguous": false,
+   "confidence": 0.99,
+   "evidence_quote": "File your taxes 100% free with TaxCo Free. No catches, everyone files free. Start now and pay nothing, ever.",
+   "location": "Opening paragraph of the material",
+   "reason": "The material triggers the rule by making a clear free-filing claim (\"File your taxes 100% free with TaxCo Free,\" \"everyone files free,\" \"pay nothing, ever\"). However, the required eligibility disclosure (~37% of filers qualify, with the Simple Form 1040 limitation) is completely absent from the material. The free claim stands alone with no adjacent or supporting disclosure of eligibility restrictions.",
+   "requirement_met": false,
    "trigger_met": true
   }
  },
@@ -155,6 +207,19 @@
    "trigger_met": true
   }
  },
+ "4bd61d110522bbe30bf369477db5b17f3803c5132c0c63701c110169a51e8b82": {
+  "model": "anthropic:claude-haiku-4-5",
+  "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
+  "verdict": {
+   "ambiguous": false,
+   "confidence": 0.98,
+   "evidence_quote": "Millions file free every year with TaxCo Free Edition. ~37% of filers qualify. Simple Form 1040 returns only (no schedules, except for EITC, CTC, student loan interest, and Schedule 1-A).",
+   "location": "Opening paragraph of the material",
+   "reason": "The material triggers the rule with \"file free\" and \"TaxCo Free Edition.\" The required disclosure\u2014\"~37% of filers qualify. Simple Form 1040 returns only (no schedules, except for EITC, CTC, student loan interest, and Schedule 1-A)\"\u2014appears immediately and directly underneath the primary free claim, matching the approved D-01 text exactly and satisfying the positional requirement.",
+   "requirement_met": true,
+   "trigger_met": true
+  }
+ },
  "4f2fad5cc4ef8b4a1765a60203741c4448345fb616fed1e27793b211437d8ee6": {
   "model": "anthropic:claude-haiku-4-5",
   "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
@@ -212,6 +277,32 @@
    "location": "extracted page text",
    "reason": "The material mentions a free edition, which triggers the rule. The required disclosure is present right underneath the free mention, satisfying the requirement.",
    "requirement_met": true,
+   "trigger_met": true
+  }
+ },
+ "5ac46be2149d84f6dc98a4c5e35d2bfc2024c698ca92bca8c6ed75a8f169fed9": {
+  "model": "anthropic:claude-haiku-4-5",
+  "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
+  "verdict": {
+   "ambiguous": false,
+   "confidence": 0.98,
+   "evidence_quote": "Millions file free every year with TaxCo Free Edition. ~37% of filers qualify. Simple Form 1040 returns only (no schedules, except for EITC, CTC, student loan interest, and Schedule 1-A).",
+   "location": "Opening paragraph of the material",
+   "reason": "The material triggers the rule by mentioning \"TaxCo Free Edition\" and \"file free.\" The required disclosure is present immediately adjacent to the free claim: the eligibility statement (~37% of filers qualify) and the scope limitation (Simple Form 1040 returns only with specified exceptions) appear directly in the next sentence, satisfying the \"right underneath\" positioning requirement. The disclosure text matches the approved D-01 library entry verbatim.",
+   "requirement_met": true,
+   "trigger_met": true
+  }
+ },
+ "5d91ba151956c6af01f32cbaba39c8c511be5c91b7c3206d8bc2926bde996b90": {
+  "model": "anthropic:claude-haiku-4-5",
+  "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
+  "verdict": {
+   "ambiguous": false,
+   "confidence": 0.95,
+   "evidence_quote": "TaxCo Free: $0 federal, $0 state, $0 to file. Start your free return today.",
+   "location": "Opening paragraph of the material",
+   "reason": "The material triggers the rule with the primary free-filing claim \"$0 to file\" in the opening statement. However, the required disclosure\u2014the exact text \"~37% of filers qualify. Simple Form 1040 returns only (no schedules, except for EITC, CTC, student loan interest, and Schedule 1-A)\"\u2014is not positioned directly underneath this claim. Instead, a generic fine-print statement appears after twenty paragraphs, which does not match the approved disclosure text and fails the \"right underneath\" positional requirement.",
+   "requirement_met": false,
    "trigger_met": true
   }
  },
@@ -416,6 +507,19 @@
    "location": "Opening line of the material",
    "reason": "The advertisement states a specific, concrete bonus of $200, which triggers the disclosure requirements. However, the material fails to disclose any of the five required items: (1) no \"Annual percentage yield\" term is used; (2) no time requirement to obtain the bonus is stated; (3) no minimum balance required to obtain the bonus is specified; (4) no minimum balance to open the account is mentioned; and (5) no time when the bonus will be provided is given. The material contains only the bonus amount and a vague temporal reference (\"this month\").",
    "requirement_met": false,
+   "trigger_met": true
+  }
+ },
+ "a90e724df5c230ee54ea750d3941ed3fd215d101e4a5a65fc0419ce492f1aa37": {
+  "model": "anthropic:claude-haiku-4-5",
+  "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
+  "verdict": {
+   "ambiguous": false,
+   "confidence": 1.0,
+   "evidence_quote": "File free with TaxCo Free Edition. ~37% of filers qualify. Simple Form 1040 returns only (no schedules, except for EITC, CTC, student loan interest, and Schedule 1-A).",
+   "location": "Opening sentence of the material",
+   "reason": "The material triggers the rule with \"File free with TaxCo Free Edition,\" a clear free-filing claim. The required disclosure \"~37% of filers qualify. Simple Form 1040 returns only (no schedules, except for EITC, CTC, student loan interest, and Schedule 1-A)\" appears immediately adjacent (right underneath) the free mention, matching the approved D-01 text exactly.",
+   "requirement_met": true,
    "trigger_met": true
   }
  },
