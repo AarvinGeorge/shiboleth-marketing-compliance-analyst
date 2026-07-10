@@ -82,3 +82,17 @@ class TestSharedBlock:
 
     def test_no_shared_block_when_pages_differ(self):
         assert detect_shared_block(["a\n\nb", "c\n\nd", "e\n\nf"], min_pages=2) == []
+
+
+class TestEvidenceNormalization:
+    def test_markdown_emphasis_tolerated(self):
+        from shiboleth.pipeline.nodes.check import evidence_in_material
+
+        material = "**TurboTax Free Edition:** TurboTax Free Edition ($0 Federal + $0 State) is available."
+        quote = "TurboTax Free Edition: TurboTax Free Edition ($0 Federal + $0 State) is available."
+        assert evidence_in_material(quote, material)
+
+    def test_real_mismatch_still_fails(self):
+        from shiboleth.pipeline.nodes.check import evidence_in_material
+
+        assert not evidence_in_material("Roughly 37% of taxpayers", "~37% of filers qualify")

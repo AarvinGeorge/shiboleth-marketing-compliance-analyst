@@ -1,0 +1,353 @@
+{
+ "strict_accuracy": 0.8492,
+ "strict_n": 199,
+ "per_class": {
+  "analyst": 0.6522,
+  "footer_inherited": 0.875
+ },
+ "per_rule": {
+  "R-01": 0.5,
+  "R-02": 0.9892,
+  "R-03": 1.0,
+  "R-04": 0.9792
+ },
+ "synthetics": "17/17",
+ "synthetics_pct": 1.0,
+ "evidence_validity": 1.0,
+ "flags_emitted": 18,
+ "ambiguity_recognition": {
+  "analyst": "5/7 (71%)",
+  "footer_inherited": "44/44 (100%)",
+  "screened_policy": "37/144 (26%)"
+ },
+ "misses": [
+  {
+   "id": "GT-F03",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-P02-01",
+   "expected": "pass",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-P02-02",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-P01-01",
+   "expected": "pass",
+   "got": "flag",
+   "credit": 0.0
+  },
+  {
+   "id": "GT-P01-02",
+   "expected": "pass",
+   "got": "not_applicable",
+   "credit": 0.0
+  },
+  {
+   "id": "GT-P04-01",
+   "expected": "pass",
+   "got": "flag",
+   "credit": 0.0
+  },
+  {
+   "id": "GT-P06-01",
+   "expected": "pass",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-P03-01",
+   "expected": "not_applicable",
+   "got": "flag",
+   "credit": 0.0
+  },
+  {
+   "id": "GT-P09-01",
+   "expected": "pass",
+   "got": "flag",
+   "credit": 0.0
+  },
+  {
+   "id": "GT-P20-01",
+   "expected": "not_applicable",
+   "got": "flag",
+   "credit": 0.0
+  },
+  {
+   "id": "GT-F03@P01",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P02",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P03",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P04",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P05",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P06",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P07",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P08",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P11",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P12",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P13",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P14",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P15",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P18",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P20",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P21",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P22",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P23",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P24",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P25",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P26",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P27",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P28",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P29",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P30",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P31",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P32",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P33",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P34",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P35",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P36",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P37",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P38",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P39",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P40",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P41",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P42",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P43",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P44",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P46",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P47",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P48",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P53",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  },
+  {
+   "id": "GT-F03@P54",
+   "expected": "flag",
+   "got": "needs_review",
+   "credit": 0.5
+  }
+ ],
+ "run_seconds": 67.8,
+ "llm_calls_live": 20,
+ "llm_calls_cached": 151,
+ "full_run": true
+}

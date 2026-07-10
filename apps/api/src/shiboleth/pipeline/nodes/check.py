@@ -79,9 +79,11 @@ requirement_met must be null and evidence_quote must be an empty string.
 and its criteria. Positional requirements (e.g. "right underneath") mean the \
 disclosure must be adjacent to the triggering claim, not merely somewhere on \
 the page.
-3. evidence_quote MUST be copied character-for-character from the material. \
-Quote the passage that best proves your verdict (the violation, or the \
-satisfied requirement).
+3. evidence_quote MUST be ONE SINGLE CONTIGUOUS passage copied \
+character-for-character from the material. NEVER stitch together text from \
+different lines, paragraphs, or sections; never insert ellipses or bridge \
+words. If more than one passage matters, quote only the single most \
+probative one and name where the others sit in `location` and `reason`.
 4. reason: 1-3 sentences of analyst reasoning. confidence: 0.0-1.0.
 
 ## The material (extracted page text)
@@ -122,10 +124,15 @@ def build_prompt(
 
 
 _WS = re.compile(r"\s+")
+_MD_EMPHASIS = re.compile(r"[*_`]+")
 
 
 def _normalize(text: str) -> str:
-    return _WS.sub(" ", text).strip().lower()
+    """Whitespace-collapse + case-fold + markdown-emphasis strip. Models quote
+    the TEXT, not its **bold** markers (iter-7 postmortem: a correct footer
+    drift verdict degraded to needs_review over asterisks). Content characters
+    are never altered — 'Roughly 37%' still does not match '~37%'."""
+    return _WS.sub(" ", _MD_EMPHASIS.sub("", text)).strip().lower()
 
 
 def evidence_in_material(quote: str, material_text: str) -> bool:

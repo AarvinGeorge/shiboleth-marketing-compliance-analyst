@@ -55,36 +55,58 @@ def _paragraph_spans(text: str) -> list[tuple[int, int]]:
     return [(s, e) for s, e in spans if text[s:e].strip()]
 
 
+def library_anchor_keywords(approved_text: str) -> list[str]:
+    """Digit-bearing tokens of an approved library text ('37%', '1040',
+    '$250,000') — high-precision anchors so windows never truncate away the
+    very disclosure a library-linked rule judges (GT-F03 postmortem: the
+    footer's drifted disclosure fell outside the capped windows)."""
+    tokens = {t.strip(".,;:()[]") for t in approved_text.split()}
+    return sorted({t for t in tokens if any(c.isdigit() for c in t) and len(t) >= 2})
+
+
 def extract_windows(
     text: str,
     rule_id: str,
     context_paragraphs: int = 1,
     max_total_chars: int = 6000,
+    extra_keywords: list[str] | None = None,
 ) -> list[str]:
     """Keyword-anchored windows: each hit paragraph +/- context, merged when
-    overlapping, VERBATIM substrings of `text`, capped at max_total_chars."""
+    overlapping, VERBATIM substrings of `text`, capped at max_total_chars.
+    extra_keywords (e.g. library anchors) rank FIRST so anchor-bearing
+    paragraphs survive the cap."""
     patterns = _COMPILED[rule_id]
+    anchor_patterns = [_pattern_for(k) for k in (extra_keywords or [])]
     spans = _paragraph_spans(text)
-    hits = [
-        i
-        for i, (s, e) in enumerate(spans)
-        if any(p.search(text[s:e]) for p in patterns)
+    anchor_hits = [
+        i for i, (s, e) in enumerate(spans)
+        if anchor_patterns and any(p.search(text[s:e]) for p in anchor_patterns)
     ]
-    if not hits:
+    keyword_hits = [
+        i for i, (s, e) in enumerate(spans)
+        if i not in set(anchor_hits) and any(p.search(text[s:e]) for p in patterns)
+    ]
+    if not anchor_hits and not keyword_hits:
         return []
 
-    # expand each hit by context paragraphs, then merge overlapping ranges
-    ranges: list[list[int]] = []
-    for i in hits:
-        lo = max(0, i - context_paragraphs)
-        hi = min(len(spans) - 1, i + context_paragraphs)
-        if ranges and lo <= ranges[-1][1] + 1:
-            ranges[-1][1] = max(ranges[-1][1], hi)
-        else:
-            ranges.append([lo, hi])
+    def to_ranges(hit_list: list[int]) -> list[tuple[int, int]]:
+        ranges: list[list[int]] = []
+        for i in sorted(hit_list):
+            lo = max(0, i - context_paragraphs)
+            hi = min(len(spans) - 1, i + context_paragraphs)
+            if ranges and lo <= ranges[-1][1] + 1:
+                ranges[-1][1] = max(ranges[-1][1], hi)
+            else:
+                ranges.append([lo, hi])
+        return [(lo, hi) for lo, hi in ranges]
 
     windows, total = [], 0
-    for lo, hi in ranges:
+    covered: set[int] = set()
+    # anchors first: they must survive the cap; generic keyword hits fill the rest
+    for lo, hi in to_ranges(anchor_hits) + to_ranges(keyword_hits):
+        if all(i in covered for i in range(lo, hi + 1)):
+            continue
+        covered.update(range(lo, hi + 1))
         window = text[spans[lo][0] : spans[hi][1]]
         if total + len(window) > max_total_chars:
             window = window[: max_total_chars - total]

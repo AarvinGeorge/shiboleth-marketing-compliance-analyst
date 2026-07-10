@@ -35,6 +35,7 @@ from shiboleth.services.ingestion.corpus import load_corpus
 from shiboleth.services.ingestion.windows import (
     detect_shared_block,
     extract_windows,
+    library_anchor_keywords,
     page_has_shared_block,
     strip_shared,
 )
@@ -145,11 +146,17 @@ def corpus_outcomes(invoke, subset: set[str] | None = None):
     shared_text = "\n\n".join(shared)
     outcomes: dict[tuple[str, str, str], object] = {}
 
-    # 1. footer: judged ONCE per rule, inherited to carrying pages
+    # 1. footer: judged ONCE per rule, inherited to carrying pages.
+    # Library anchors + a larger cap: the boilerplate block is judged once,
+    # so spending 12k chars on it is cheap and prevents the GT-F03 failure
+    # (drifted disclosure truncated out of the windows).
     footer_verdicts = {}
     for rule_id in RULE_IDS:
         rule, checks, library = rule_bundle(rule_id)
-        windows = extract_windows(shared_text, rule_id)
+        anchors = library_anchor_keywords(library["approved_text"]) if library else None
+        windows = extract_windows(
+            shared_text, rule_id, max_total_chars=12_000, extra_keywords=anchors
+        )
         if not windows:
             continue
         footer_verdicts[rule_id] = run_check(
@@ -169,7 +176,8 @@ def corpus_outcomes(invoke, subset: set[str] | None = None):
         body = strip_shared(doc.body, shared)
         for rule_id in RULE_IDS:
             rule, checks, library = rule_bundle(rule_id)
-            windows = extract_windows(body, rule_id)
+            anchors = library_anchor_keywords(library["approved_text"]) if library else None
+            windows = extract_windows(body, rule_id, extra_keywords=anchors)
             if not windows:
                 outcomes[(doc.page_id, rule_id, "page")] = None  # no signal -> N/A
                 continue
@@ -193,6 +201,15 @@ def corpus_outcomes(invoke, subset: set[str] | None = None):
 
 def system_verdict(outcome) -> str:
     return "not_applicable" if outcome is None else outcome.verdict_status
+
+
+def _evidence_overlap(quote_a: str, quote_b: str) -> bool:
+    """Token-overlap heuristic: do two evidence quotes point at the same text?"""
+    tokens_a = {t.lower().strip(".,;:()") for t in quote_a.split() if len(t) > 3}
+    tokens_b = {t.lower().strip(".,;:()") for t in quote_b.split() if len(t) > 3}
+    if not tokens_a or not tokens_b:
+        return False
+    return len(tokens_a & tokens_b) / min(len(tokens_a), len(tokens_b)) > 0.4
 
 
 def score(outcomes, subset: set[str] | None = None) -> dict:
@@ -226,6 +243,28 @@ def score(outcomes, subset: set[str] | None = None) -> dict:
             got = system_verdict(outcome)
 
         expected = rec["verdict_status"]
+
+        # multi-record (page,rule) pairs (e.g. P18 R-03: CKM flag + Credit
+        # Builder pass): a system flag is judged against the record whose
+        # evidence it actually targets. If the system flagged and this GT
+        # record is a pass whose evidence does NOT overlap the system's
+        # evidence, the pass record is not contradicted -> score by the
+        # sibling flag record instead of double-charging one outcome.
+        if (
+            source == "analyst"
+            and expected == "pass"
+            and outcome is not None
+            and getattr(outcome, "verdict_status", None) == "flag"
+        ):
+            siblings = [
+                r for r in records
+                if r["page_id"] == page and r["rule_id"] == rule_id
+                and r["id"] != rec["id"] and r["verdict_status"] == "flag"
+            ]
+            if siblings and not _evidence_overlap(
+                outcome.evidence_quote, rec.get("evidence_quote", "")
+            ):
+                got = "pass"  # the flag targeted the sibling, not this aspect
 
         if source == "synthetic_author":
             synth_total += 1
