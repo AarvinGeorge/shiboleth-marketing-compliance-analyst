@@ -32,3 +32,6 @@ ms-playwright/
 out/
 *.tsbuildinfo
 next-env.d.ts
+
+# lane worktrees (subagent branches; merged via review, never committed here)
+.worktrees/

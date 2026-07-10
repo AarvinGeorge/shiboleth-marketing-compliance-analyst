@@ -192,7 +192,9 @@ def run_check(
 
     evidence_valid = evidence_in_material(verdict.evidence_quote, material_text)
     if evidence_valid:
-        verdict_status = "pass" if axis_a else "flag"
+        # a flag arises from EITHER axis: non-compliant (A) or drifted from
+        # approval (B False) — drift is a finding type (04 §6e; GT-F03)
+        verdict_status = "pass" if axis_a and axis_b is not False else "flag"
     else:
         verdict_status = "needs_review"  # guardrail 4: invalid evidence degrades
 
