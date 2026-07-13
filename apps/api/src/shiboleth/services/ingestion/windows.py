@@ -25,9 +25,21 @@ from collections import Counter
 # case-insensitive, word-boundary anchored except symbol tokens like "$0").
 RULE_KEYWORDS: dict[str, list[str]] = {
     "R-01": ["free", "$0", "no cost", "sin costo", "gratis"],
-    "R-02": ["apr", "finance charge", "loan fee", "interest rate", "annual percentage rate"],
-    "R-03": ["fdic", "deposit", "checking", "savings", "insured", "member fdic"],
+    "R-02": ["apr", "finance charge", "loan fee", "interest rate",
+             "annual percentage rate"],
+    "R-03": ["fdic", "member fdic", "insured"],
     "R-04": ["bonus", "reward", "referral", "apy", "annual percentage yield"],
+}
+
+# Broad, low-precision terms: real recall signal (GT2-V51: "rates over 6%"
+# carried no primary keyword) but must never crowd primary hits out of the
+# budget (GT2 iter-2 regression: bare "rate" hits displaced "0% APR" text;
+# generic "checking/deposit" mentions displaced the Member-FDIC statement).
+RULE_KEYWORDS_BROAD: dict[str, list[str]] = {
+    "R-01": [],
+    "R-02": ["rate", "rates"],
+    "R-03": ["deposit", "checking", "savings"],
+    "R-04": [],
 }
 
 _PARA_SPLIT = re.compile(r"\n\s*\n")
@@ -43,6 +55,10 @@ def _pattern_for(keyword: str) -> re.Pattern:
 
 _COMPILED: dict[str, list[re.Pattern]] = {
     rule: [_pattern_for(k) for k in kws] for rule, kws in RULE_KEYWORDS.items()
+}
+_COMPILED_BROAD: dict[str, list[re.Pattern]] = {
+    rule: [_pattern_for(k) for k in kws]
+    for rule, kws in RULE_KEYWORDS_BROAD.items()
 }
 
 
@@ -70,50 +86,87 @@ def extract_windows(
     context_paragraphs: int = 1,
     max_total_chars: int = 6000,
     extra_keywords: list[str] | None = None,
+    fallback_chars: int | None = None,
 ) -> list[str]:
     """Keyword-anchored windows: each hit paragraph +/- context, merged when
     overlapping, VERBATIM substrings of `text`, capped at max_total_chars.
     extra_keywords (e.g. library anchors) rank FIRST so anchor-bearing
-    paragraphs survive the cap."""
-    patterns = _COMPILED[rule_id]
+    paragraphs survive the cap.
+
+    Budget-priority selection (GT2 baseline postmortem): a merged range that
+    exceeds the remaining budget is never prefix-truncated — on nav-heavy
+    pages that kept site navigation and dropped the disclosures at the
+    bottom (12/21 missed violations, all retrieval). Instead the range is
+    split back into its individual hit paragraphs (anchors first) and those
+    are emitted until the budget fills.
+
+    fallback_chars: when NO keyword hits at all, return [text[:fallback_chars]]
+    instead of [] so the checker still sees the material (semantic-recall
+    stopgap until pgvector; None preserves the historical empty-list contract).
+
+    Windows are MATCH-CENTERED slices, not paragraph prefixes (GT2 iter-2
+    postmortem: raw_markdown paragraphs run to 17k chars, so paragraph-unit
+    windows let the budget die on giant low-value blocks while the match
+    itself got truncated away). Every emitted window is guaranteed to
+    contain the keyword text that earned it. Priority: library anchors >
+    primary rule keywords > broad keywords (RULE_KEYWORDS_BROAD)."""
     anchor_patterns = [_pattern_for(k) for k in (extra_keywords or [])]
+    tiers = [anchor_patterns, _COMPILED[rule_id], _COMPILED_BROAD[rule_id]]
+
+    # per tier: first match position per paragraph (doc order within tier)
     spans = _paragraph_spans(text)
-    anchor_hits = [
-        i for i, (s, e) in enumerate(spans)
-        if anchor_patterns and any(p.search(text[s:e]) for p in anchor_patterns)
-    ]
-    keyword_hits = [
-        i for i, (s, e) in enumerate(spans)
-        if i not in set(anchor_hits) and any(p.search(text[s:e]) for p in patterns)
-    ]
-    if not anchor_hits and not keyword_hits:
+    before = max(400, context_paragraphs * 400)
+    after = max(1800, context_paragraphs * 1800)
+    hits: list[tuple[int, int]] = []  # (tier, match_start), deduped by para
+    claimed: set[tuple[int, int]] = set()  # (tier-independent) para claims
+    for tier, patterns in enumerate(tiers):
+        if not patterns:
+            continue
+        for pi, (s, e) in enumerate(spans):
+            if any((t, pi) in claimed for t in range(tier + 1)):
+                continue
+            para = text[s:e]
+            starts = [m.start() + s for p in patterns for m in [p.search(para)] if m]
+            if starts:
+                claimed.add((tier, pi))
+                hits.append((tier, min(starts)))
+    if not hits:
+        if fallback_chars and text.strip():
+            return [text[:fallback_chars]]
         return []
 
-    def to_ranges(hit_list: list[int]) -> list[tuple[int, int]]:
-        ranges: list[list[int]] = []
-        for i in sorted(hit_list):
-            lo = max(0, i - context_paragraphs)
-            hi = min(len(spans) - 1, i + context_paragraphs)
-            if ranges and lo <= ranges[-1][1] + 1:
-                ranges[-1][1] = max(ranges[-1][1], hi)
-            else:
-                ranges.append([lo, hi])
-        return [(lo, hi) for lo, hi in ranges]
-
-    windows, total = [], 0
-    covered: set[int] = set()
-    # anchors first: they must survive the cap; generic keyword hits fill the rest
-    for lo, hi in to_ranges(anchor_hits) + to_ranges(keyword_hits):
-        if all(i in covered for i in range(lo, hi + 1)):
-            continue
-        covered.update(range(lo, hi + 1))
-        window = text[spans[lo][0] : spans[hi][1]]
-        if total + len(window) > max_total_chars:
-            window = window[: max_total_chars - total]
-            if window:
-                windows.append(window)
+    windows: list[str] = []
+    intervals: list[tuple[int, int]] = []  # emitted char ranges
+    total = 0
+    for tier, m in sorted(hits, key=lambda h: (h[0], h[1])):
+        remaining = max_total_chars - total
+        if remaining < 200:
             break
+        lo = max(0, m - before)
+        hi = min(len(text), m + after)
+        # clip against already-emitted ranges (never duplicate text)
+        for a, b in intervals:
+            if lo < b and hi > a:  # overlap
+                if m >= a and m < b:  # match already covered
+                    lo = hi = m  # skip entirely
+                    break
+                if lo < a:
+                    hi = min(hi, a)
+                else:
+                    lo = max(lo, b)
+        sliver = hi - lo < 80 and intervals  # clipped remnant, not a short doc
+        if sliver or not (lo <= m < hi):
+            continue
+        if hi - lo > remaining:
+            # shrink but keep the match inside the window
+            hi = min(hi, max(m + 1, lo + remaining))
+            if m >= hi:
+                continue
+        window = text[lo:hi]
+        if not window.strip():
+            continue
         windows.append(window)
+        intervals.append((lo, hi))
         total += len(window)
     return windows
 

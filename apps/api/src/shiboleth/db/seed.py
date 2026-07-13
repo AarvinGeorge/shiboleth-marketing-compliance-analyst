@@ -61,8 +61,8 @@ CHECKS: list[dict] = [
     },
     {
         "id": "R-03-T", "rule_id": "R-03", "kind": "trigger",
-        "text": "Is the product being advertised a deposit product?",
-        "evidence_criteria": "The advertised product is a checking/savings/deposit account (money held on deposit), not a loan or tax service; quote the product description.",
+        "text": "Does the material advertise or promote a deposit product (a checking/savings/deposit account), including incidental promotion such as steering the reader to receive funds into a named account product?",
+        "evidence_criteria": "A checking/savings/deposit account (money held on deposit) is promoted anywhere in the material, even when the page's main topic is something else (Aarvin ruling 2026-07-13, strict: promoting direct deposit of a refund into a named account product triggers). Loans and tax services alone do not trigger; quote the promotion.",
         "library_entry_id": None,
     },
     {

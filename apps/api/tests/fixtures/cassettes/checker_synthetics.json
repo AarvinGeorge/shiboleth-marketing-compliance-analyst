@@ -122,6 +122,19 @@
    "trigger_met": true
   }
  },
+ "334a028afee89599ec3f3e4eceb81a877f81f8a6143c67f87b5190dd3db1ba2a": {
+  "model": "anthropic:claude-haiku-4-5",
+  "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
+  "verdict": {
+   "ambiguous": false,
+   "confidence": 0.99,
+   "evidence_quote": "File your taxes 100% free with TaxCo Free. No catches, everyone files free. Start now and pay nothing, ever.",
+   "location": "Opening paragraph of material",
+   "reason": "The material triggers the rule by marketing a free tax-filing product (\"TaxCo Free\") with explicit free-filing claims (\"100% free,\" \"everyone files free,\" \"pay nothing, ever\"). However, the required eligibility disclosure (~37% of filers qualify; Simple Form 1040 returns only) is completely absent from the material. The free claim stands alone with no adjacent or nearby disclosure of eligibility limitations.",
+   "requirement_met": false,
+   "trigger_met": true
+  }
+ },
  "3ac8913d236703d54db9b2a3c70109275ada46bf4c96987eeb271dc1c2d8790c": {
   "model": "anthropic:claude-haiku-4-5",
   "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
@@ -167,6 +180,19 @@
    "evidence_quote": "RefundFast advance: 19% APR. For example, a 6-month $1,000 advance at 19% APR has a finance charge of $56.14.",
    "location": "Opening sentence of the material",
    "reason": "The material states a rate of finance charge (19%) and explicitly labels it as \"APR\" in both the headline and the example calculation. The requirement is satisfied because the stated rate is expressed using the term \"APR\" directly adjacent to the numeric rate.",
+   "requirement_met": true,
+   "trigger_met": true
+  }
+ },
+ "44d16db6c2d55e891281cd06a169488b49c3e04414e89e0b4642a87d37d89fc1": {
+  "model": "anthropic:claude-haiku-4-5",
+  "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
+  "verdict": {
+   "ambiguous": false,
+   "confidence": 0.99,
+   "evidence_quote": "NeoSpend checking: your deposit product is FDIC-insured up to $250,000 through Example Bank, Member FDIC.",
+   "location": "Opening sentence of material",
+   "reason": "The material explicitly promotes \"NeoSpend checking,\" a deposit product (checking account). The FDIC insurance language immediately follows and contains all three required elements: \"FDIC-insured,\" the \"$250,000\" limit, and the named bank (\"Example Bank\"). The requirement is satisfied.",
    "requirement_met": true,
    "trigger_met": true
   }
@@ -220,6 +246,19 @@
    "trigger_met": true
   }
  },
+ "4c469f48a95a4607e8efe59177b1bcd2786f493a68d41c7595308cfadb0fcb22": {
+  "model": "anthropic:claude-haiku-4-5",
+  "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
+  "verdict": {
+   "ambiguous": false,
+   "confidence": 0.99,
+   "evidence_quote": "NeoSave high-yield savings: 4.2% APY, no fees, instant transfers. Join half a million savers.",
+   "location": "Opening line of material",
+   "reason": "The material explicitly promotes \"NeoSave high-yield savings,\" a deposit product, encouraging readers to join. However, the material contains no FDIC insurance language whatsoever\u2014it does not state that the product is FDIC-insured up to $250,000 through any named bank. The requirement is not met.",
+   "requirement_met": false,
+   "trigger_met": true
+  }
+ },
  "4f2fad5cc4ef8b4a1765a60203741c4448345fb616fed1e27793b211437d8ee6": {
   "model": "anthropic:claude-haiku-4-5",
   "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
@@ -268,6 +307,19 @@
    "trigger_met": false
   }
  },
+ "54f6f9c8cd48ebf6c1c570e3e72f4e1a5ba91d6a55e5ac49a7458e735fa125d4": {
+  "model": "anthropic:claude-haiku-4-5",
+  "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
+  "verdict": {
+   "ambiguous": false,
+   "confidence": 0.99,
+   "evidence_quote": "NeoSave high-yield savings: 4.2% APY, no fees, instant transfers.",
+   "location": "Opening line of material",
+   "reason": "The material explicitly promotes \"NeoSave high-yield savings,\" a deposit product (savings account). However, the material contains no FDIC insurance language whatsoever\u2014it does not state the product is FDIC-insured, does not mention the $250,000 limit, and does not name the partner bank. The requirement is not satisfied.",
+   "requirement_met": false,
+   "trigger_met": true
+  }
+ },
  "55011312d95a6fd3bdea7eef2745ed57ee29dd769982d2e2fd138a89a70f284e": {
   "model": "groq:llama-3.3-70b-versatile",
   "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
@@ -289,6 +341,19 @@
    "evidence_quote": "Millions file free every year with TaxCo Free Edition. ~37% of filers qualify. Simple Form 1040 returns only (no schedules, except for EITC, CTC, student loan interest, and Schedule 1-A).",
    "location": "Opening paragraph of the material",
    "reason": "The material triggers the rule by mentioning \"TaxCo Free Edition\" and \"file free.\" The required disclosure is present immediately adjacent to the free claim: the eligibility statement (~37% of filers qualify) and the scope limitation (Simple Form 1040 returns only with specified exceptions) appear directly in the next sentence, satisfying the \"right underneath\" positioning requirement. The disclosure text matches the approved D-01 library entry verbatim.",
+   "requirement_met": true,
+   "trigger_met": true
+  }
+ },
+ "5cde69835d0b27d894b12d955e162bfcc0252d3a923ed9beaab41ede8447e708": {
+  "model": "anthropic:claude-haiku-4-5",
+  "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
+  "verdict": {
+   "ambiguous": false,
+   "confidence": 0.99,
+   "evidence_quote": "Deposits are FDIC-insured up to $250,000 through Partner Trust Bank (Member FDIC).",
+   "location": "First sentence of the material",
+   "reason": "The material explicitly promotes \"NeoSave\" as a deposit product (\"Save with NeoSave. Deposits are FDIC-insured...\"), triggering the rule. The FDIC insurance language states deposits are FDIC-insured up to $250,000 through Partner Trust Bank, meeting all three requirement criteria: FDIC-insured status, the $250,000 limit, and the named bank.",
    "requirement_met": true,
    "trigger_met": true
   }
@@ -342,6 +407,19 @@
    "trigger_met": true
   }
  },
+ "6aea536551656eb6b965d466d041c8f6f7e57368ee5583d8661206d328378de4": {
+  "model": "anthropic:claude-haiku-4-5",
+  "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
+  "verdict": {
+   "ambiguous": false,
+   "confidence": 0.98,
+   "evidence_quote": "Your money is FDIC insured and always safe with us.",
+   "location": "Second sentence of the material",
+   "reason": "The material triggers the rule by promoting a deposit product (\"Open a NeoSpend checking account today\"). However, the FDIC language fails the requirement: it states the money is \"FDIC insured\" but omits both the $250,000 limit and the named bank. The rule requires all three elements: FDIC-insured status, the specific $250,000 cap, and the partner bank name.",
+   "requirement_met": false,
+   "trigger_met": true
+  }
+ },
  "6cd944f4fd23f6a16e9accff648f57397e2d9397bce7b974d787ea325929d595": {
   "model": "anthropic:claude-haiku-4-5",
   "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
@@ -351,6 +429,19 @@
    "location": "Opening sentence of the material",
    "reason": "The material triggers the rule by advertising a checking account, which is a deposit product. However, the FDIC insurance language fails the requirement: it states the product is \"FDIC insured\" but omits the mandatory $250,000 limit and does not name the partner bank. The rule requires all three elements (FDIC-insured, $250,000 limit, and named bank) to be present.",
    "requirement_met": false,
+   "trigger_met": true
+  }
+ },
+ "78d9b37d081c315e625bd0eadd929d455f003e252f184db179226f12d2d275bd": {
+  "model": "anthropic:claude-haiku-4-5",
+  "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
+  "verdict": {
+   "ambiguous": false,
+   "confidence": 0.99,
+   "evidence_quote": "NeoSpend checking: your deposit product is FDIC-insured up to $250,000 through Example Bank, Member FDIC.",
+   "location": "Opening sentence of material",
+   "reason": "The material explicitly promotes \"NeoSpend checking,\" a named deposit product (checking account). The FDIC insurance language immediately follows and states the deposit product is FDIC-insured up to $250,000 through Example Bank, satisfying all three required elements: FDIC-insured status, the $250,000 limit, and the named bank.",
+   "requirement_met": true,
    "trigger_met": true
   }
  },
@@ -426,6 +517,19 @@
    "trigger_met": true
   }
  },
+ "8c249949bd001578619596395a8c7c5272861824b787d14edff634991a5ac30f": {
+  "model": "anthropic:claude-haiku-4-5",
+  "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
+  "verdict": {
+   "ambiguous": false,
+   "confidence": 0.98,
+   "evidence_quote": "Deposits are FDIC-insured up to $250,000 through Partner Trust Bank (Member FDIC).",
+   "location": "First sentence of the material",
+   "reason": "The material promotes \"NeoSave\" as a deposit product with the opening phrase \"Save with NeoSave,\" triggering the rule. The FDIC insurance language immediately follows and contains all three required elements: (1) \"FDIC-insured,\" (2) the \"$250,000\" limit, and (3) the named bank \"Partner Trust Bank.\" The disclosure is adjacent to the promotion, satisfying the requirement.",
+   "requirement_met": true,
+   "trigger_met": true
+  }
+ },
  "8edeae4ac3cd767d5d885633af7f56088151c4cd07383a185f789216d0424b21": {
   "model": "anthropic:claude-haiku-4-5",
   "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
@@ -471,6 +575,19 @@
    "location": "Opening sentence of the material",
    "reason": "The advertisement states a specific $150 bonus, triggering the rule. All five required disclosures are present and clearly stated in the same sentence: (1) \"Annual Percentage Yield (APY)\" is explicitly named; (2) \"90 days\" specifies the time requirement; (3) \"$5,000 minimum balance\" is the balance to obtain the bonus; (4) \"$500 minimum to open the account\" is stated and is less than the bonus requirement, satisfying the conditional disclosure; (5) \"bonus credited within 30 days of qualifying\" specifies when the bonus will be provided. All disclosures are conspicuous and adjacent to the bonus offer.",
    "requirement_met": true,
+   "trigger_met": true
+  }
+ },
+ "983a808017be9caaac868897ac55e3d0cfeb6dc71292664144e408acb727142d": {
+  "model": "anthropic:claude-haiku-4-5",
+  "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
+  "verdict": {
+   "ambiguous": false,
+   "confidence": 0.95,
+   "evidence_quote": "Your money is FDIC insured and always safe with us.",
+   "location": "First paragraph of material",
+   "reason": "The material triggers by promoting \"NeoSpend checking account,\" a deposit product. However, the FDIC language fails the requirement: it states \"FDIC insured\" but omits both the $250,000 limit and the named bank partner. The rule requires all three elements (FDIC-insured, $250,000 limit, and named bank).",
+   "requirement_met": false,
    "trigger_met": true
   }
  },
@@ -727,6 +844,19 @@
    "trigger_met": true
   }
  },
+ "dd33dfc7bf7ee2d6efedb7c25cd698a21dbc3a24f6f4ef44f57550ebf755f973": {
+  "model": "anthropic:claude-haiku-4-5",
+  "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
+  "verdict": {
+   "ambiguous": false,
+   "confidence": 1.0,
+   "evidence_quote": "File free with TaxCo Free Edition. ~37% of filers qualify. Simple Form 1040 returns only (no schedules, except for EITC, CTC, student loan interest, and Schedule 1-A).",
+   "location": "Opening sentence of the material",
+   "reason": "The material triggers the rule with the explicit free-filing claim \"File free with TaxCo Free Edition.\" The required disclosure is present immediately adjacent to this claim in the same passage: \"~37% of filers qualify. Simple Form 1040 returns only (no schedules, except for EITC, CTC, student loan interest, and Schedule 1-A).\" This matches the approved D-01 text exactly and is positioned directly underneath the primary free claim, satisfying the positional requirement.",
+   "requirement_met": true,
+   "trigger_met": true
+  }
+ },
  "e3a9ce7747b779d9fcc6912de85e895cc0433f98911127b929188c2ff58051d0": {
   "model": "groq:llama-3.3-70b-versatile",
   "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
@@ -783,6 +913,32 @@
    "evidence_quote": "File your taxes 100% free with TaxCo Free. No catches, everyone files free. Start now and pay nothing, ever.",
    "location": "Opening sentence of the material",
    "reason": "The material triggers the rule by claiming \"100% free\" filing and \"everyone files free\" and \"pay nothing, ever\"\u2014clear free-filing offers for the advertised product (TaxCo Free). However, the required eligibility disclosure (~37% of filers qualify with the specified limitations) is completely absent from the material. The free claim stands alone with no adjacent or underlying disclosure of eligibility restrictions.",
+   "requirement_met": false,
+   "trigger_met": true
+  }
+ },
+ "f23380ac6733aa34f66bfd28d564b59bb13b653994f3d0f78779f743f4b8dd77": {
+  "model": "anthropic:claude-haiku-4-5",
+  "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
+  "verdict": {
+   "ambiguous": false,
+   "confidence": 0.98,
+   "evidence_quote": "Millions file free every year with TaxCo Free Edition. ~37% of filers qualify. Simple Form 1040 returns only (no schedules, except for EITC, CTC, student loan interest, and Schedule 1-A).",
+   "location": "Opening paragraph of the material",
+   "reason": "The material triggers the rule with the marketing claim \"Millions file free every year with TaxCo Free Edition.\" The required disclosure is present immediately adjacent to the free claim: the eligibility statement (~37% of filers qualify) and the detailed limitation text (Simple Form 1040 returns only...) appear directly underneath in the same paragraph, matching the approved D-01 disclosure verbatim and satisfying the \"right underneath\" positional requirement.",
+   "requirement_met": true,
+   "trigger_met": true
+  }
+ },
+ "f324ac35c1aacb1c49b74b50e83d56d9c930781feaff127510cef23a99691b09": {
+  "model": "anthropic:claude-haiku-4-5",
+  "prompt_preview": "You are a marketing-compliance analyst for a fintech's bank partner. Judge ONE rule against ONE marketing material. Be precise and conservative: never invent co",
+  "verdict": {
+   "ambiguous": false,
+   "confidence": 0.95,
+   "evidence_quote": "TaxCo Free: $0 federal, $0 state, $0 to file.",
+   "location": "Opening line of the material",
+   "reason": "The material triggers the rule with a clear free-filing marketing claim (\"$0 to file\"). However, the required D-01 disclosure (~37% of filers qualify with the specific eligibility criteria) is absent immediately underneath the claim. The fine print at the end is vague (\"Some filers with simple returns may qualify\") and does not match the approved disclosure text or appear adjacent to the primary free claim, failing the \"right underneath\" positional requirement.",
    "requirement_met": false,
    "trigger_met": true
   }

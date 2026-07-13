@@ -190,7 +190,8 @@ async def resume_checking(session: AsyncSession, invoke, labeler, run_id: str) -
         for rule_id in RULE_IDS:
             rule, checks, library = rule_bundle(rule_id)
             anchors = library_anchor_keywords(library["approved_text"]) if library else None
-            windows = extract_windows(body, rule_id, extra_keywords=anchors)
+            windows = extract_windows(body, rule_id, extra_keywords=anchors,
+                                      fallback_chars=24_000)
             outcomes_here = []
             if windows:
                 outcomes_here.append(("page", run_check(

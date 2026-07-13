@@ -56,6 +56,35 @@ class TestExtractWindows:
         assert extract_windows("A capricious pricing scheme.", "R-02") == []
         assert extract_windows("0% APR on this loan.", "R-02") != []
 
+    def test_bare_rate_triggers_r02(self):
+        # GT2-V51 postmortem: "rates over 6%" carried no R-02 family keyword,
+        # so the checker was never called on a stated finance charge
+        assert extract_windows("Private loans have rates from 6-12%.", "R-02") != []
+        assert extract_windows("This loan has a rate of 5.9%.", "R-02") != []
+
+    def test_cap_keeps_hit_paragraphs_not_page_prefix(self):
+        # GT2 baseline postmortem: on nav-heavy pages every paragraph hits,
+        # the ranges merge into one mega-range, and prefix truncation kept
+        # site navigation while dropping the disclosure at the bottom.
+        nav = "\n\n".join(f"free nav link {i} " + "x" * 300 for i in range(30))
+        disclosure = "Roughly 37% of taxpayers qualify for Free Edition 1040."
+        page = nav + "\n\n" + disclosure
+        windows = extract_windows(
+            page, "R-01", max_total_chars=3000, extra_keywords=["37%", "1040"])
+        joined = "\n".join(windows)
+        assert disclosure in joined, "anchor paragraph must survive the cap"
+        assert sum(len(w) for w in windows) <= 3000
+        for w in windows:
+            assert w in page  # substring guarantee holds
+
+    def test_fallback_full_text_when_no_hits(self):
+        text = "Our experts help you all year round."
+        assert extract_windows(text, "R-03") == []
+        assert extract_windows(text, "R-03", fallback_chars=100) == [text]
+        long_text = "y" * 50_000
+        fb = extract_windows(long_text, "R-03", fallback_chars=24_000)
+        assert fb == [long_text[:24_000]]
+
 
 PAGES = [
     f"# Page {i}\n\nUnique hero copy {i}.\n\nShared footnote: ~37% disclosure text here.\n\nShared legal block line two."
