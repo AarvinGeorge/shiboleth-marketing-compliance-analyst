@@ -1,33 +1,30 @@
 """
 meta:
-  purpose: GET /metrics — the five hero KPIs (01_spec §10) computed from the
-           REAL database (no fixtures). Also POST /products (create product +
-           properties from New-check chips) and the product-level metric
-           mirror used by GET /products/{id}. Every number traces to a SQL
-           aggregate over current DB state (KPI traceability, E3).
-  contract: GET /metrics -> {portfolio_score, open_violations, triage,
-            coverage, caught} each {value, sublabel, intent, trend?}.
-            POST /products {name, properties:[{kind,url_or_handle,config?}]}
-            -> {id}. compute_product_metric_row for U6.
-  deps: db models, scoring.kpis (pure), scoring.formulas (severity).
+  purpose: GET /metrics — the dashboard hero data (metrics overhaul
+           2026-07-13: open-flags donut by tag + open-violations tile,
+           portfolio-wide) computed from the REAL database (no fixtures).
+           Also POST /products (create product + properties from New-check
+           chips). Every number traces to a SQL aggregate over current DB
+           state (KPI traceability, E3).
+  contract: GET /metrics -> {open_flags_total, open_flags_by_tag,
+            open_violations, open_violations_high}. Scope: each product's
+            LATEST run only (multiple runs per product would double count;
+            the dashboard product cards show the latest run and these
+            numbers must equal them exactly). Definitions: open flag =
+            flags.state='open'; needs_review = open flag whose persisted
+            outcome verdict_status is 'needs_review'; open violation = open
+            flag with a violation verdict, i.e. every open flag that is NOT
+            needs_review. POST /products {name, properties:[...]} -> {id}.
+  deps: db models.
 """
 
 from __future__ import annotations
-
-from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy import desc, select
 
-from shiboleth.db.models import Flag, Material, Product, Property, Run, RunInventory, new_id
-from shiboleth.services.scoring.kpis import (
-    caught_metric,
-    coverage_metric,
-    open_violations_metric,
-    portfolio_score_metric,
-    triage_metric,
-)
+from shiboleth.db.models import Flag, Product, Property, Run, new_id
 
 router = APIRouter()
 
@@ -53,81 +50,53 @@ async def _latest_runs(session) -> list[Run]:
     return runs
 
 
-async def compute_portfolio_metrics(session) -> dict:
-    now = datetime.now(UTC)
-    latest = await _latest_runs(session)
-    completed = [r for r in latest if r.status == "completed"]
-
-    # 1. verified portfolio score + real per-run trend
-    per_product = []
-    for r in completed:
-        v = (r.scores or {}).get("verified")
-        if v is None:
-            continue
-        rows = (r.scores or {}).get("outcome_rows", [])
-        weight = sum(1 for row in rows if row["verdict_status"] in ("pass", "flag"))
-        per_product.append((v, weight or 1))
-    trend_runs = (await session.execute(
-        select(Run).where(Run.status == "completed").order_by(Run.started_at)
-    )).scalars().all()
-    trend = [(r.scores or {}).get("verified") for r in trend_runs]
-    trend = [t for t in trend if t is not None]
-
-    # flags across the latest run of each product
-    flag_rows: list[dict] = []
-    ttds: list[timedelta] = []
-    undispositioned = 0
-    unapproved = drift = 0
-    for r in latest:
-        opened = r.started_at or now
-        flags = (await session.execute(select(Flag).where(Flag.run_id == r.id))).scalars().all()
-        for f in flags:
-            flag_rows.append({"severity": _severity(f.check_id),
-                              "opened_at": opened, "state": f.state})
-            if f.dispositioned_at is None and f.state == "open":
-                undispositioned += 1
-            if f.dispositioned_at is not None:
-                ttds.append(f.dispositioned_at - opened)
-            if f.intersection_tag == "unapproved_violation":
-                unapproved += 1
-            elif f.intersection_tag == "drifted_but_compliant":
-                drift += 1
-
-    # coverage: distinct materials tracked vs fetched <=24h
-    total_assets = 0
-    checked_recent = 0
-    for r in latest:
-        inv = (await session.execute(
-            select(RunInventory).where(RunInventory.run_id == r.id)
-        )).scalars().all()
-        hashes = {row.content_hash for row in inv}
-        if not hashes:
-            # corpus runs store materials directly, not always in inventory
-            mats = (await session.execute(
-                select(Material.content_hash, Material.fetched_at)
-                .join(Property, Material.property_id == Property.id)
-                .where(Property.product_id == r.product_id)
-            )).all()
-            for _h, fetched in mats:
-                total_assets += 1
-                if fetched and (now - fetched) <= timedelta(hours=24):
-                    checked_recent += 1
-        else:
-            mats = (await session.execute(
-                select(Material.content_hash, Material.fetched_at)
-                .where(Material.content_hash.in_(hashes))
-            )).all()
-            for _h, fetched in mats:
-                total_assets += 1
-                if fetched and (now - fetched) <= timedelta(hours=24):
-                    checked_recent += 1
-
+def needs_review_flag_ids(run: Run) -> set[str]:
+    """Flag ids the run's persisted outcome rows mark needs_review (the
+    checker declined to decide; excluded from the score denominator and NOT
+    a violation)."""
     return {
-        "portfolio_score": portfolio_score_metric(per_product, trend),
-        "open_violations": open_violations_metric(flag_rows, now=now),
-        "triage": triage_metric(undispositioned, ttds),
-        "coverage": coverage_metric(checked_recent, total_assets),
-        "caught": caught_metric(unapproved, drift),
+        row.get("flag_id")
+        for row in (run.scores or {}).get("outcome_rows", [])
+        if row.get("verdict_status") == "needs_review" and row.get("flag_id")
+    }
+
+
+async def compute_portfolio_metrics(session) -> dict:
+    """Portfolio-wide open-flag picture over each product's LATEST run only.
+    Donut buckets partition ALL open flags: unapproved_violation /
+    drifted_but_compliant / needs_review / other (remaining tags). The tile:
+    open_violations = open flags with a violation verdict (total minus
+    needs_review), so donut total and tile stay mutually consistent AND
+    equal to what the product surfaces show."""
+    latest = await _latest_runs(session)
+    by_tag = {"unapproved_violation": 0, "drifted_but_compliant": 0,
+              "needs_review": 0, "other": 0}
+    open_total = 0
+    violations = 0
+    violations_high = 0
+    for r in latest:
+        review_ids = needs_review_flag_ids(r)
+        flags = (await session.execute(
+            select(Flag).where(Flag.run_id == r.id, Flag.state == "open")
+        )).scalars().all()
+        for f in flags:
+            open_total += 1
+            if f.id in review_ids:
+                by_tag["needs_review"] += 1
+                continue
+            if f.intersection_tag in ("unapproved_violation",
+                                      "drifted_but_compliant"):
+                by_tag[f.intersection_tag] += 1
+            else:
+                by_tag["other"] += 1
+            violations += 1
+            if _severity(f.check_id) == "High":
+                violations_high += 1
+    return {
+        "open_flags_total": open_total,
+        "open_flags_by_tag": by_tag,
+        "open_violations": violations,
+        "open_violations_high": violations_high,
     }
 
 

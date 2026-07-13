@@ -64,22 +64,21 @@ export interface ApiProductListItem {
   last_run_status: string | null;
 }
 
-// GET /metrics: each hero KPI. value=null is an honest empty state (render
-// the sublabel, never a fabricated number). trend is present only on the
-// portfolio score and drives its sparkline (empty array = no sparkline).
-export interface ApiMetric {
-  value: string | number | null;
-  sublabel: string;
-  intent: string;
-  trend?: number[];
-}
-
+// GET /metrics (overhaul 2026-07-13): the dashboard hero data, portfolio
+// wide over each product's LATEST run only (never double counts). The donut
+// buckets partition ALL open flags; open_violations = open flags with a
+// violation verdict (total minus needs_review) so the tile, the donut and
+// the product surfaces always agree.
 export interface ApiMetrics {
-  portfolio_score: ApiMetric;
-  open_violations: ApiMetric;
-  triage: ApiMetric;
-  coverage: ApiMetric;
-  caught: ApiMetric;
+  open_flags_total: number;
+  open_flags_by_tag: {
+    unapproved_violation: number;
+    drifted_but_compliant: number;
+    needs_review: number;
+    other: number;
+  };
+  open_violations: number;
+  open_violations_high: number;
 }
 
 export interface ApiVerdicts {
@@ -102,6 +101,9 @@ export interface ApiFlag {
   material_id: string | null;
   location: string;
   source_url: string | null; // materials.ref, clean per-page URL for the source link
+  // "needs_review" = the checker declined to decide (not a violation);
+  // otherwise "flag". Optional: legacy payloads lack it (treat as "flag").
+  verdict_status?: "flag" | "needs_review";
   verdicts: ApiVerdicts;
 }
 

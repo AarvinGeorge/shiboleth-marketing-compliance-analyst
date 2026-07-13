@@ -41,7 +41,7 @@ import {
   postSkipProperty,
   type ApiCluster,
   type ApiFlag,
-  type ApiMetric,
+  type ApiMetrics,
   type ApiProductDetail,
   type ApiProductListItem,
   type CheckUpsertInput,
@@ -141,33 +141,11 @@ function shortHandle(kind: PropertyKind, urlOrHandle: string): string {
 // Hero metrics (GET /metrics)
 // ---------------------------------------------------------------------------
 
-export interface HeroMetric {
-  id: string;
-  label: string;
-  intent: string;
-  value: string | null; // null = honest empty state (render sublabel only)
-  sublabel: string;
-  trend: number[] | null;
-}
-
-// Card titles are UI copy; every number + sublabel + intent is the API's.
-const HERO_ORDER: { key: keyof ApiMetricsShape; label: string }[] = [
-  { key: "portfolio_score", label: "Verified portfolio score" },
-  { key: "open_violations", label: "Open violations" },
-  { key: "triage", label: "Awaiting triage" },
-  { key: "coverage", label: "Coverage 24h" },
-  { key: "caught", label: "Caught this week" },
-];
-type ApiMetricsShape = {
-  portfolio_score: ApiMetric;
-  open_violations: ApiMetric;
-  triage: ApiMetric;
-  coverage: ApiMetric;
-  caught: ApiMetric;
-};
-
+/** Dashboard hero data (metrics overhaul 2026-07-13): the raw portfolio-wide
+ *  open-flag picture. The dashboard renders it as the open-flags donut plus
+ *  the open-violations tile; every number is the API's own SQL aggregate. */
 export function useMetrics(active = false): {
-  metrics: HeroMetric[];
+  metrics: ApiMetrics | undefined;
   isLoading: boolean;
 } {
   const q = useQuery({
@@ -175,21 +153,7 @@ export function useMetrics(active = false): {
     queryFn: getMetricsApi,
     refetchInterval: active ? POLL_MS : false,
   });
-  const metrics = useMemo<HeroMetric[]>(() => {
-    if (!q.data) return [];
-    return HERO_ORDER.map(({ key, label }) => {
-      const m = q.data[key];
-      return {
-        id: key,
-        label,
-        intent: m.intent,
-        value: m.value === null ? null : String(m.value),
-        sublabel: m.sublabel,
-        trend: m.trend && m.trend.length > 0 ? m.trend : null,
-      };
-    });
-  }, [q.data]);
-  return { metrics, isLoading: q.isLoading };
+  return { metrics: q.data, isLoading: q.isLoading };
 }
 
 // ---------------------------------------------------------------------------
@@ -701,7 +665,12 @@ function buildMetrics(
     (lifecycles[f.id]?.state ?? f.state) as FlagState;
   const flags = detail.flags;
   const open = flags.filter((f) => stateOf(f) === "open");
-  const openViolations = open.filter((f) => f.verdicts.axis_a === false);
+  // ONE violation definition everywhere (metrics overhaul 2026-07-13): an
+  // open flag with a violation verdict; needs_review is not a violation.
+  // Legacy payloads without verdict_status count as violations.
+  const openViolations = open.filter(
+    (f) => (f.verdict_status ?? "flag") === "flag"
+  );
   const highOpen = openViolations.filter(
     (f) => severityOf(f.verdicts.check_id) === "High"
   ).length;

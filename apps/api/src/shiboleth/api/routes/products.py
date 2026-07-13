@@ -92,6 +92,12 @@ async def product_detail(product_id: str, request: Request) -> dict:
                     .where(Material.id.in_(material_ids))
                 )).all()
                 source_urls = {mid: ref for mid, ref in mat_rows}
+            # additive (metrics overhaul 2026-07-13): verdict_status lets the
+            # UI apply ONE violation definition everywhere (needs_review is
+            # not a violation; it is its own donut slice).
+            from shiboleth.api.routes.metrics import needs_review_flag_ids
+
+            review_ids = needs_review_flag_ids(latest)
             for f in rows:
                 flags.append({
                     "id": f.id, "state": f.state, "assigned_team": f.assigned_team,
@@ -99,6 +105,9 @@ async def product_detail(product_id: str, request: Request) -> dict:
                     "cluster_label": clusters.get(f.cluster_id),
                     "material_id": f.material_id, "location": f.location,
                     "source_url": source_urls.get(f.material_id),
+                    "verdict_status": (
+                        "needs_review" if f.id in review_ids else "flag"
+                    ),
                     "verdicts": {
                         "check_id": f.check_id, "axis_a": f.axis_a,
                         "axis_b": f.axis_b, "intersection_tag": f.intersection_tag,

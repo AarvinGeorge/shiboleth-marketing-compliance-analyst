@@ -1,12 +1,14 @@
-// meta: U2 dashboard (route /). Five hero MetricCards render from GET /metrics
-// (value, sublabel, intent tooltip; the portfolio card's sparkline from the
-// REAL trend array only). Product cards render ONLY GET /products results, in
-// their live run state: running (progress from real material_fetched count vs
-// page cap), awaiting_input (legacy runs only; the redesigned ingestion
-// auto-skips failed mediums instead of parking), or completed (verified score
-// + open-flag count + delete-latest-check with
-// confirm against DELETE /runs/{id}). No fixtures, no timers. Display
-// vocabulary: "marketing mediums" (code identifiers keep property_*).
+// meta: U2 dashboard (route /). Hero (metrics overhaul 2026-07-13): the
+// open-flags donut (all open flags by tag, center total; OpenFlagsDonut) +
+// the open-violations MetricCard, both from GET /metrics (portfolio-wide,
+// latest run per product; every number is the API's own SQL aggregate).
+// Product cards render ONLY GET /products results, in their live run state:
+// running (progress from real material_fetched count vs page cap),
+// awaiting_input (legacy runs only; the redesigned ingestion auto-skips
+// failed mediums instead of parking), or completed (open-flag count + chips
+// + quiet skipped-medium notes + delete-latest-check with confirm against
+// DELETE /runs/{id}; no score number on cards). No fixtures, no timers.
+// Display vocabulary: "marketing mediums" (code identifiers keep property_*).
 
 "use client";
 
@@ -32,7 +34,7 @@ import {
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { MetricCard } from "@/components/primitives/metric-card";
-import { Sparkline } from "@/components/primitives/sparkline";
+import { OpenFlagsDonut } from "@/components/primitives/open-flags-donut";
 import { PropertyIcon } from "@/components/primitives/property-chip";
 import { NewCheckModal } from "@/components/shell/new-check-modal";
 import { PasteDialog } from "@/components/shell/paste-dialog";
@@ -74,20 +76,21 @@ export default function DashboardPage() {
         </NewCheckModal>
       </div>
 
-      {metrics.length > 0 ? (
-        <div className="mb-7 grid grid-cols-5 gap-3">
-          {metrics.map((m) => (
-            <MetricCard
-              key={m.id}
-              label={m.label}
-              intent={m.intent}
-              value={m.value ?? ""}
-              sublabel={[{ text: m.sublabel }]}
-              sparkline={
-                m.trend ? <Sparkline data={m.trend} kind="area" /> : undefined
-              }
-            />
-          ))}
+      {metrics ? (
+        <div className="mb-7 grid grid-cols-[1.7fr_1fr] items-stretch gap-3">
+          <OpenFlagsDonut metrics={metrics} />
+          <MetricCard
+            label="Open violations"
+            intent="Open flags with a violation verdict across all products"
+            value={String(metrics.open_violations)}
+            sublabel={[
+              {
+                text: `${metrics.open_violations_high} high`,
+                tone: "danger",
+              },
+              { text: " · latest run per product" },
+            ]}
+          />
         </div>
       ) : null}
 
@@ -196,9 +199,6 @@ function ProductCard({ product: p }: { product: ProductSummary }) {
         </div>
       </div>
       <div className="flex flex-none flex-col items-end gap-1.5">
-        <span className="text-[1.375rem] font-medium leading-7 tracking-tight">
-          {p.verifiedScore ?? ""}
-        </span>
         <span className="text-[11px] text-muted-foreground">
           {p.lastChecked}
         </span>
