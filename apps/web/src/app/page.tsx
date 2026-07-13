@@ -4,7 +4,7 @@
 // their live run state: running (progress from real material_fetched count vs
 // page cap), awaiting_input (legacy runs only; the redesigned ingestion
 // auto-skips failed mediums instead of parking), or completed (verified score
-// + open-flag count + quiet skipped-medium notes + delete-latest-check with
+// + open-flag count + delete-latest-check with
 // confirm against DELETE /runs/{id}). No fixtures, no timers. Display
 // vocabulary: "marketing mediums" (code identifiers keep property_*).
 
@@ -194,12 +194,6 @@ function ProductCard({ product: p }: { product: ProductSummary }) {
             </span>
           ))}
         </div>
-        {p.skipped.map((s) => (
-          <span key={s.id} className="text-xs text-muted-foreground">
-            {MEDIUM_NAME[s.kind] ?? s.kind}: automated fetch unavailable,
-            medium skipped
-          </span>
-        ))}
       </div>
       <div className="flex flex-none flex-col items-end gap-1.5">
         <span className="text-[1.375rem] font-medium leading-7 tracking-tight">
