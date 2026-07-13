@@ -69,11 +69,13 @@ def create_app() -> FastAPI:
 
     from shiboleth.api.routes.flags import router as flags_router
     from shiboleth.api.routes.metrics import router as metrics_router
+    from shiboleth.api.routes.preview import router as preview_router
     from shiboleth.api.routes.products import router as products_router
     from shiboleth.api.routes.runs import router as runs_router
 
     app.include_router(products_router)
     app.include_router(flags_router)
+    app.include_router(preview_router)
     app.include_router(runs_router)
     app.include_router(metrics_router)
 

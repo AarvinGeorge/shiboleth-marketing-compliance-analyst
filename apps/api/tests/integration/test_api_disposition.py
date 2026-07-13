@@ -108,3 +108,6 @@ async def test_product_detail_shape(client_with_flag):
     assert body["product"]["name"] == "TurboTax Free"
     assert len(body["flags"]) == 1
     assert body["flags"][0]["verdicts"]["intersection_tag"] == "unapproved_violation"
+    # source_url is the material's clean per-page URL for the "view original
+    # source" link, distinct from the display-only location string.
+    assert body["flags"][0]["source_url"] == "https://x/"

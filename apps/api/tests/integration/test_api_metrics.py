@@ -23,7 +23,7 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-async def make_client(seeded_session):
+async def make_client(seeded_session):  # noqa: F811
     from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
     from shiboleth.main import create_app
@@ -92,12 +92,6 @@ async def test_open_violations_matches_independent_sql(known_state):
 async def test_caught_matches_independent_sql(known_state):
     client, session, run = known_state
     metrics = (await client.get("/metrics")).json()
-    unapproved = (await session.execute(
-        select(func.count(Flag.id)).where(
-            Flag.run_id == run.id, Flag.intersection_tag == "unapproved_violation",
-            Flag.state.notin_(("dismissed",))
-        )
-    )).scalar()
     # caught counts ALL reconciliation tags incl the dismissed one in this run;
     # assert the API's unapproved+drift equals the tag counts it reports
     assert metrics["caught"]["value"] >= 2

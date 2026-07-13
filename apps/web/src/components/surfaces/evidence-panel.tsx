@@ -5,9 +5,16 @@
 // M4 note: the API serves no material text, so the panel text IS the
 // API-served evidence_quote (highlight covers it), and the full checker
 // reason renders below it as the analysis line.
+// Preview feature: when meta.sourceUrl exists, a Text | Preview toggle
+// (shadcn Tabs) renders the live page inline via PagePreview, auto-scrolled
+// to the highlighted evidence line. Checker reasoning stays below both tabs.
+
+"use client";
 
 import { TriangleAlert } from "lucide-react";
 import { PropertyIcon } from "@/components/primitives/property-chip";
+import { PagePreview } from "@/components/surfaces/page-preview";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { FlagView } from "@/lib/data";
 
 const KIND_PREFIX: Record<string, string> = {
@@ -19,28 +26,48 @@ const KIND_PREFIX: Record<string, string> = {
 export function EvidencePanel({ view }: { view: FlagView }) {
   const { flag, material, property, meta } = view;
 
+  const textView =
+    flag.modality === "text" || flag.modality === "social_post" ? (
+      <HighlightedText
+        text={material.extracted_text}
+        quote={flag.verdicts.evidence_quote}
+      />
+    ) : (
+      <div className="px-6 py-8 text-sm text-muted-foreground">
+        Media evidence rendering lands with the multimodal build.
+      </div>
+    );
+
   return (
     <div className="overflow-hidden rounded-lg border border-border">
-      <div className="flex items-center gap-2 border-b border-border/60 bg-surface px-4.5 py-2.5">
-        <span className="inline-flex h-[22px] items-center gap-1.5 rounded-sm border border-border bg-background px-2 font-mono text-[11px] font-medium text-foreground/70">
-          <PropertyIcon kind={property.kind} className="size-3" />
-          {KIND_PREFIX[property.kind]}
-        </span>
-        <span className="text-xs text-muted-foreground">
-          {material.ref}
-          {meta.postDate ? ` · ${meta.postDate}` : ""}
-        </span>
-      </div>
-      {flag.modality === "text" || flag.modality === "social_post" ? (
-        <HighlightedText
-          text={material.extracted_text}
-          quote={flag.verdicts.evidence_quote}
-        />
-      ) : (
-        <div className="px-6 py-8 text-sm text-muted-foreground">
-          Media evidence rendering lands with the multimodal build.
+      <Tabs defaultValue="text">
+        <div className="flex items-center gap-2 border-b border-border/60 bg-surface px-4.5 py-2.5">
+          <span className="inline-flex h-[22px] items-center gap-1.5 rounded-sm border border-border bg-background px-2 font-mono text-[11px] font-medium text-foreground/70">
+            <PropertyIcon kind={property.kind} className="size-3" />
+            {KIND_PREFIX[property.kind]}
+          </span>
+          <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+            {material.ref}
+            {meta.postDate ? ` · ${meta.postDate}` : ""}
+          </span>
+          {meta.sourceUrl ? (
+            <TabsList className="h-7">
+              <TabsTrigger value="text" className="h-6 px-2.5 text-xs">
+                Text
+              </TabsTrigger>
+              <TabsTrigger value="preview" className="h-6 px-2.5 text-xs">
+                Preview
+              </TabsTrigger>
+            </TabsList>
+          ) : null}
         </div>
-      )}
+        <TabsContent value="text">{textView}</TabsContent>
+        {meta.sourceUrl ? (
+          <TabsContent value="preview">
+            <PagePreview flagId={flag.id} />
+          </TabsContent>
+        ) : null}
+      </Tabs>
       {flag.verdicts.reason ? (
         <div className="border-t border-border/60 bg-surface/60 px-6 py-3.5">
           <span className="text-xs font-medium text-muted-foreground">

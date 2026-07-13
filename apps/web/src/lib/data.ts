@@ -514,10 +514,14 @@ function toFlagView(f: ApiFlag, property: Property, model: string): FlagView {
       confidence: f.verdicts.confidence,
     },
   };
+  // materials.ref (source_url) is the clean per-page URL; f.location is a
+  // display string that may be a corpus page id, so prefer the real URL.
+  const sourceUrl =
+    f.source_url && /^https?:\/\//.test(f.source_url) ? f.source_url : null;
   const material: Material = {
     id: f.material_id ?? f.id,
     property_id: property.id,
-    ref: f.location,
+    ref: f.source_url ?? f.location,
     kind: "page",
     modality: "text",
     media_ref: null,
@@ -535,6 +539,7 @@ function toFlagView(f: ApiFlag, property: Property, model: string): FlagView {
     model,
     missingRequirement: null,
     postDate: null,
+    sourceUrl,
     chain: [
       { title: `Ingested · ${f.location}` },
       { title: `Extracted · marketing copy from ${f.location}` },

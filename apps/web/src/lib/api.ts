@@ -101,6 +101,7 @@ export interface ApiFlag {
   cluster_label: string | null;
   material_id: string | null;
   location: string;
+  source_url: string | null; // materials.ref, clean per-page URL for the source link
   verdicts: ApiVerdicts;
 }
 

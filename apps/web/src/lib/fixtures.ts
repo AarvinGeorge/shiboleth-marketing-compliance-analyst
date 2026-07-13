@@ -89,6 +89,8 @@ export interface FlagMeta {
   missingRequirement: string | null; // "required nearby, not found" callout
   chain: WhyStep[]; // compact why-flagged chain, 5 steps
   postDate: string | null; // social posts only
+  sourceUrl: string | null; // clean per-page URL (materials.ref) for the source link
+
 }
 
 // ---------------------------------------------------------------------------

@@ -6,11 +6,15 @@
 // reason below; lifecycle strip (delta 3) above the Disposition panel (live
 // POST dispositions); flag facts incl. verbatim rule text via RuleText;
 // compact why-flagged chain whose verdict step expands to the real reason.
+// Header carries a prominent "View original source" button (meta.sourceUrl =
+// materials.ref, the clean per-page URL) opening the live source in a new tab.
 
 "use client";
 
 import { use } from "react";
 import Link from "next/link";
+import { ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { SeverityBadge } from "@/components/primitives/severity-badge";
 import { VerdictTags } from "@/components/primitives/verdict-tags";
 import {
@@ -82,6 +86,19 @@ export default function FlagDetailPage({
         <span className="text-xs text-muted-foreground">
           <span className="font-mono">{check.id}</span> · {meta.foundAt}
         </span>
+        {meta.sourceUrl ? (
+          <Button asChild size="sm" className="ml-1">
+            <a
+              href={meta.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={meta.sourceUrl}
+            >
+              <ExternalLink className="size-3.5" />
+              View original source
+            </a>
+          </Button>
+        ) : null}
       </div>
       <div className="mb-6 flex items-start gap-3">
         <VerdictTags verdicts={flag.verdicts} className="flex-none" />

@@ -4,7 +4,9 @@ meta:
            renders: product, properties, latest run scores, flags with
            verdicts + cluster labels.
   contract: GET /products; GET /products/{id} -> {product, properties, scores,
-            flags[]}. Read-only; disposition lives in flags.py.
+            flags[]}. Each flag carries source_url (materials.ref, the clean
+            per-page URL) for the "view original source" link. Read-only;
+            disposition lives in flags.py.
   deps: db models only.
 """
 
@@ -13,7 +15,7 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException, Request
 from sqlalchemy import desc, select
 
-from shiboleth.db.models import Cluster, Flag, Product, Property, Run
+from shiboleth.db.models import Cluster, Flag, Material, Product, Property, Run
 
 router = APIRouter()
 
@@ -60,12 +62,24 @@ async def product_detail(product_id: str, request: Request) -> dict:
                 select(Cluster).where(Cluster.run_id == latest.id)
             )).scalars().all()
             clusters = {c.id: c.label for c in cluster_rows}
+            # materials.ref is the clean per-page source URL (flags.location is
+            # a display string that may be a corpus page id, not a URL); the
+            # "view original source" button needs the real URL.
+            material_ids = {f.material_id for f in rows if f.material_id}
+            source_urls: dict[str, str] = {}
+            if material_ids:
+                mat_rows = (await session.execute(
+                    select(Material.id, Material.ref)
+                    .where(Material.id.in_(material_ids))
+                )).all()
+                source_urls = {mid: ref for mid, ref in mat_rows}
             for f in rows:
                 flags.append({
                     "id": f.id, "state": f.state, "assigned_team": f.assigned_team,
                     "note": f.note, "cluster_id": f.cluster_id,
                     "cluster_label": clusters.get(f.cluster_id),
                     "material_id": f.material_id, "location": f.location,
+                    "source_url": source_urls.get(f.material_id),
                     "verdicts": {
                         "check_id": f.check_id, "axis_a": f.axis_a,
                         "axis_b": f.axis_b, "intersection_tag": f.intersection_tag,
