@@ -23,7 +23,7 @@ large volumes of marketing material manually.
 | 1 | Checker optimization vs GT v2: baseline on train+test, diagnose misses on TRAIN only, fix, re-measure; test split touched exactly twice (baseline + final) | **DONE 2026-07-13**: baseline 71.2% → final 78.8% strict (train 71.5→80.6, held-out TEST 70.4→74.1); all fixes were retrieval plumbing (match-centered windows, keyword tiers, fallback); evidence validity 1.0 throughout; details in code/CLAUDE.md decision log | Trust in flags is the foundation; everything else just displays them |
 | 2 | Empty-window fallback (windows find nothing but rule could apply → full-body check instead of silent not_applicable) + trigger-scope fixes from baseline diagnosis (esp. R-03 strict ruling: incidental deposit-product promotion triggers) | next | Small, measurable, closes recall holes the baseline exposes |
 | 3 | pgvector migration: semantic retrieval + semantic clustering TOGETHER (one embedding column serves both) | after 2 | Biggest recall win + fixes clustering in one schema change |
-| 4 | Sitemap-first discovery ported from gt2 harness into product ingestion (sitemap harvest + LLM rule-relevance ranking; keep depth/page-count knobs as advanced options, not primary UX) | after 3 | Better coverage, fewer knobs; analyst sees "found 10,066 pages, scanning the 200 most rule-relevant" |
+| 4 | Sitemap-first discovery ported from gt2 harness into product ingestion | **DONE 2026-07-13** (commit f88a5c4, pulled forward at Aarvin's direction): semantic discovery vs the LIVE DB scorecard, per-medium page cap, optional mediums with auto-skip (barrier/modal removed), async runs, run deletion, "marketing mediums" vocabulary (display layer; schema identifiers kept — expert pushback, Aarvin informed). E2E-verified live: 8,776 sitemap URLs → exactly the rule-relevant pages (incl. the Spanish free-edition page) → 18 flags / 3 clusters / 1 auto-issue in 9.5 min. diversify() postmortem regression-tested. Depth/timeframe knobs removed per Aarvin | Better coverage, fewer knobs |
 | 5 | Disposition feedback loop surfaced in UI (FP-rate trend, "your dismissals taught the system", golden set growth; plumbing already exists in eval_items) | after 4 | Free expert ground truth (v3 accumulates itself) + visible self-improvement = retention |
 | 6 | Social media ingestion | LAST, deliberately | Meta blocks scrapers; paste-fallback exists; do not spend increments here until the website loop is excellent |
 
@@ -47,7 +47,19 @@ Level 3: EXACT WORDING within issue — exists today (normalized-identical);
   the UI ("review as group"), never silent.** Wrong merge = trust-killer;
   under-grouping is merely tedious.
 
-## The Customize-scorecard layer (Aarvin, 2026-07-13 — planned since kickoff)
+## The Customize-scorecard layer — SHIPPED 2026-07-13 (commit d89e298)
+
+Delivered ahead of schedule at Aarvin's direction: /scorecard studio UI
+(verbatim rule cards, dropdown severity, editable binary decompositions,
+add-rule with live LLM decomposition + auto-derived primary/broad retrieval
+keyword chips, 409 audit guards surfaced). Architecture: LIVE runs are
+DB-driven (edited/custom rules actually check); CORPUS runs stay on the
+frozen seeded benchmark; run rows snapshot the scorecard in force.
+Still pending from the original plan: rule CALIBRATION with probe fixtures
+(the signature move) and the E2 decomposition-quality harness — both remain
+below.
+
+## The Customize-scorecard layer (original plan, 2026-07-13 — for the parts not yet built)
 
 The preloaded 4-rule scorecard is seed data, not the product. The dashboard's
 Customize button lets analysts ADD scorecard items; the system auto-decomposes
