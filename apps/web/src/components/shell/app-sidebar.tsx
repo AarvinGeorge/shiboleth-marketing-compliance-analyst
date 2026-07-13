@@ -1,8 +1,8 @@
 // meta: U1 app shell sidebar (expanded only, desktop 1440). Customize
-// scorecard button (U4 deferred, inert in MVP1), New check primary CTA
-// (opens the U3 modal), PRODUCTS list with status dots (DESIGN.md tokens:
-// clear = success, flagged = warning, checking = primary) + open-flag count,
-// user chip at bottom. Product list from useProducts (API + demo cards).
+// scorecard button (links to the U4 scorecard studio at /scorecard), New
+// check primary CTA (opens the U3 modal), PRODUCTS list with status dots
+// (DESIGN.md tokens: clear = success, flagged = warning, checking = primary)
+// + open-flag count, user chip at bottom. Product list from useProducts.
 
 "use client";
 
@@ -38,10 +38,16 @@ export function AppSidebar() {
       <div className="flex flex-col gap-1.5 px-4 pb-3.5">
         <Button
           variant="ghost"
-          className="h-[34px] justify-start gap-2 px-2.5 text-[13px] text-foreground/70"
+          asChild
+          className={cn(
+            "h-[34px] justify-start gap-2 px-2.5 text-[13px] text-foreground/70",
+            pathname === "/scorecard" && "bg-border/60 text-foreground"
+          )}
         >
-          <SlidersHorizontal className="size-3.5" />
-          Customize scorecard
+          <Link href="/scorecard">
+            <SlidersHorizontal className="size-3.5" />
+            Customize scorecard
+          </Link>
         </Button>
         <NewCheckModal>
           <Button className="h-9 w-full gap-2 text-[13px]">

@@ -65,6 +65,10 @@ class Rule(Base):
     verbatim_text: Mapped[str] = mapped_column(Text)  # doc 05 §1, never paraphrased
     severity: Mapped[str] = mapped_column(String)
     position: Mapped[int] = mapped_column(Integer)
+    # customize layer (additive, 2026-07-13): retrieval keyword families for
+    # user-added rules ({"primary": [...], "broad": [...]}, LLM-derived at
+    # decomposition time). Empty dict = seeded rule -> windows.py registry.
+    retrieval_keywords: Mapped[dict] = mapped_column(JSONB, default=dict)
 
 
 class LibraryEntry(Base):

@@ -20,22 +20,30 @@ import {
 } from "@tanstack/react-query";
 import {
   ApiError,
+  deleteScorecardCheck,
+  deleteScorecardRule,
   getMetricsApi,
   getProductDetailApi,
   getProductsApi,
   getRunEventsApi,
+  getScorecardApi,
   patchIssueState,
+  patchScorecardCheck,
+  patchScorecardRule,
   postCheck,
   postCreateProduct,
   postDisposition,
   postIssueSuggestions,
   postPasteContent,
+  postScorecardCheck,
+  postScorecardRule,
   postSkipProperty,
   type ApiCluster,
   type ApiFlag,
   type ApiMetric,
   type ApiProductDetail,
   type ApiProductListItem,
+  type CheckUpsertInput,
   type NewPropertyInput,
 } from "@/lib/api";
 import {
@@ -850,6 +858,79 @@ export function useIssueState(productId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["product", productId] });
     },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Scorecard (U4 customize layer)
+// ---------------------------------------------------------------------------
+// Live checks read the scorecard from the DB, so edits here apply to new
+// live checks automatically; corpus runs stay on the certified benchmark.
+// verbatim_text is canonical: render through <RuleText/>, never flatten.
+
+export function useScorecard() {
+  return useQuery({ queryKey: ["scorecard"], queryFn: getScorecardApi });
+}
+
+function useInvalidateScorecard() {
+  const queryClient = useQueryClient();
+  return () => queryClient.invalidateQueries({ queryKey: ["scorecard"] });
+}
+
+/** POST /scorecard/rules: server decomposes + derives keywords (LLM,
+ *  ~5-10s). Callers must show a decomposing progress state. */
+export function useCreateRule() {
+  const invalidate = useInvalidateScorecard();
+  return useMutation({
+    mutationFn: (body: { verbatim_text: string; severity: string }) =>
+      postScorecardRule(body),
+    onSuccess: invalidate,
+  });
+}
+
+/** PATCH /scorecard/rules/{id}: severity-only, text-only, or text +
+ *  regenerate=true (re-decomposes, same latency as create). */
+export function useUpdateRule() {
+  const invalidate = useInvalidateScorecard();
+  return useMutation({
+    mutationFn: (input: {
+      ruleId: string;
+      body: { verbatim_text?: string; severity?: string; regenerate?: boolean };
+    }) => patchScorecardRule(input.ruleId, input.body),
+    onSuccess: invalidate,
+  });
+}
+
+/** DELETE /scorecard/rules/{id}: 409 when flags reference the rule; the
+ *  ApiError detail is the message to surface. */
+export function useDeleteRule() {
+  const invalidate = useInvalidateScorecard();
+  return useMutation({
+    mutationFn: (ruleId: string) => deleteScorecardRule(ruleId),
+    onSuccess: invalidate,
+  });
+}
+
+export function useUpsertCheck() {
+  const invalidate = useInvalidateScorecard();
+  return useMutation({
+    mutationFn: (input: {
+      checkId: string | null; // null = create under ruleId
+      ruleId: string;
+      body: CheckUpsertInput;
+    }) =>
+      input.checkId
+        ? patchScorecardCheck(input.checkId, input.body)
+        : postScorecardCheck(input.ruleId, input.body),
+    onSuccess: invalidate,
+  });
+}
+
+export function useDeleteCheck() {
+  const invalidate = useInvalidateScorecard();
+  return useMutation({
+    mutationFn: (checkId: string) => deleteScorecardCheck(checkId),
+    onSuccess: invalidate,
   });
 }
 

@@ -22,9 +22,7 @@ from datetime import UTC, datetime
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from shiboleth.db.models import Flag, Material, Property, Run, RunInventory, new_id
-from shiboleth.db.seed import RULES
-from shiboleth.evals.harnesses.e3 import rule_bundle
+from shiboleth.db.models import Flag, Material, Property, Rule, Run, RunInventory, new_id
 from shiboleth.pipeline.corpus_run import _emit
 from shiboleth.pipeline.nodes.check import run_check
 from shiboleth.pipeline.nodes.cluster import cluster_flags
@@ -39,16 +37,23 @@ from shiboleth.services.ingestion.windows import (
 from shiboleth.services.scoring.formulas import content_hash
 from shiboleth.services.scoring.metrics import outcomes_to_scores
 
-RULE_IDS = [r[0] for r in RULES]
-SEVERITY = {rule_id: severity for rule_id, _t, severity, _p in RULES}
 
 
 async def create_live_run(session: AsyncSession, product_id: str) -> str:
     """Create + COMMIT the run row synchronously so the API can return the id
     before ingest starts (the ingest task then owns the run's lifecycle)."""
+    # snapshot the ACTUAL scorecard this run will check against (customize
+    # layer: live runs are DB-driven, so the audit trail must record which
+    # rules, at what severity, were in force)
+    rules = (await session.execute(
+        select(Rule).order_by(Rule.position))).scalars().all()
     run = Run(id=new_id(), product_id=product_id, mode="live", status="running",
               started_at=datetime.now(UTC),
-              scorecard_snapshot={"scorecard_id": "SC-01", "rules": len(RULES)},
+              scorecard_snapshot={
+                  "scorecard_id": rules[0].scorecard_id if rules else "SC-01",
+                  "rules": [{"id": r.id, "severity": r.severity,
+                             "verbatim_text": r.verbatim_text} for r in rules],
+              },
               scores={})
     session.add(run)
     await session.flush()  # run row must exist before its first event (FK)
@@ -171,14 +176,25 @@ async def resume_checking(session: AsyncSession, invoke, labeler, run_id: str) -
     shared = detect_shared_block(bodies, min_pages=min_pages) if len(bodies) >= 3 else []
     shared_text = "\n\n".join(shared)
 
+    # customize layer (2026-07-13): LIVE runs are DB-driven — user-added and
+    # edited rules apply here. Corpus runs stay on the frozen seeded
+    # constants (certification benchmark). Keyword families: DB-derived for
+    # user rules, windows.py registry for seeded ones.
+    from shiboleth.services.scorecard import load_rule_bundles
+
+    bundles = await load_rule_bundles(session)
+    severity_by_rule = {b["rule"]["id"]: b["rule"]["severity"] for b in bundles}
+
     flag_rows, score_rows = [], []
     footer_outcomes = {}
     if shared:
-        for rule_id in RULE_IDS:
-            rule, checks, library = rule_bundle(rule_id)
+        for b in bundles:
+            rule_id, rule, checks, library = (b["rule"]["id"], b["rule"],
+                                              b["checks"], b["library"])
             anchors = library_anchor_keywords(library["approved_text"]) if library else None
             windows = extract_windows(shared_text, rule_id, max_total_chars=12_000,
-                                      extra_keywords=anchors)
+                                      extra_keywords=anchors,
+                                      keywords=b["keywords"])
             if windows:
                 footer_outcomes[rule_id] = run_check(
                     "\n\n".join(windows), rule, checks, library, invoke)
@@ -187,11 +203,13 @@ async def resume_checking(session: AsyncSession, invoke, labeler, run_id: str) -
         body = strip_shared(material.extracted_text, shared) if shared \
             else material.extracted_text
         carries_shared = shared and page_has_shared_block(material.extracted_text, shared)
-        for rule_id in RULE_IDS:
-            rule, checks, library = rule_bundle(rule_id)
+        for b in bundles:
+            rule_id, rule, checks, library = (b["rule"]["id"], b["rule"],
+                                              b["checks"], b["library"])
             anchors = library_anchor_keywords(library["approved_text"]) if library else None
             windows = extract_windows(body, rule_id, extra_keywords=anchors,
-                                      fallback_chars=24_000)
+                                      fallback_chars=24_000,
+                                      keywords=b["keywords"])
             outcomes_here = []
             if windows:
                 outcomes_here.append(("page", run_check(
@@ -200,13 +218,13 @@ async def resume_checking(session: AsyncSession, invoke, labeler, run_id: str) -
                 outcomes_here.append(("shared", footer_outcomes[rule_id]))
             if not outcomes_here:
                 score_rows.append({"verdict_status": "not_applicable",
-                                   "severity": SEVERITY[rule_id],
+                                   "severity": severity_by_rule[rule_id],
                                    "property_id": material.property_id,
                                    "flag_id": None})
                 continue
             for scope, outcome in outcomes_here:
                 status = outcome.verdict_status
-                row = {"verdict_status": status, "severity": SEVERITY[rule_id],
+                row = {"verdict_status": status, "severity": severity_by_rule[rule_id],
                        "property_id": material.property_id, "flag_id": None}
                 score_rows.append(row)
                 if status in ("flag", "needs_review"):

@@ -72,12 +72,14 @@ def create_app() -> FastAPI:
     from shiboleth.api.routes.preview import router as preview_router
     from shiboleth.api.routes.products import router as products_router
     from shiboleth.api.routes.runs import router as runs_router
+    from shiboleth.api.routes.scorecard import router as scorecard_router
 
     app.include_router(products_router)
     app.include_router(flags_router)
     app.include_router(preview_router)
     app.include_router(runs_router)
     app.include_router(metrics_router)
+    app.include_router(scorecard_router)
 
     @app.get("/health")
     async def health() -> dict[str, str]:

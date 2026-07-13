@@ -87,6 +87,7 @@ def extract_windows(
     max_total_chars: int = 6000,
     extra_keywords: list[str] | None = None,
     fallback_chars: int | None = None,
+    keywords: dict | None = None,
 ) -> list[str]:
     """Keyword-anchored windows: each hit paragraph +/- context, merged when
     overlapping, VERBATIM substrings of `text`, capped at max_total_chars.
@@ -109,9 +110,19 @@ def extract_windows(
     windows let the budget die on giant low-value blocks while the match
     itself got truncated away). Every emitted window is guaranteed to
     contain the keyword text that earned it. Priority: library anchors >
-    primary rule keywords > broad keywords (RULE_KEYWORDS_BROAD)."""
+    primary rule keywords > broad keywords (RULE_KEYWORDS_BROAD).
+
+    keywords: optional {"primary": [...], "broad": [...]} override for
+    USER-ADDED rules (customize layer) whose id is not in the registry;
+    seeded rules keep the registry families (certification stability)."""
     anchor_patterns = [_pattern_for(k) for k in (extra_keywords or [])]
-    tiers = [anchor_patterns, _COMPILED[rule_id], _COMPILED_BROAD[rule_id]]
+    if keywords and (keywords.get("primary") or keywords.get("broad")):
+        primary = [_pattern_for(k) for k in keywords.get("primary", [])]
+        broad = [_pattern_for(k) for k in keywords.get("broad", [])]
+    else:
+        primary = _COMPILED.get(rule_id, [])
+        broad = _COMPILED_BROAD.get(rule_id, [])
+    tiers = [anchor_patterns, primary, broad]
 
     # per tier: first match position per paragraph (doc order within tier)
     spans = _paragraph_spans(text)

@@ -42,6 +42,8 @@ MODEL_STAGES: dict[str, tuple[str, str]] = {
     # issue layer (clustering C1): signer + adjudicator; Anthropic per
     # Aarvin 2026-07-13, cheap tier — two short calls per wording cluster
     "issue": ("DEFAULT_MODEL_ISSUE", "anthropic:claude-haiku-4-5"),
+    # customize layer: rule -> binary decomposition + retrieval keywords
+    "decompose": ("DEFAULT_MODEL_DECOMPOSE", "anthropic:claude-haiku-4-5"),
 }
 
 LANGSMITH_PROJECT_DEFAULT = "shiboleth-marketing-compliance-analyst-project"

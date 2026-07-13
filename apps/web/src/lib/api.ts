@@ -261,3 +261,95 @@ export function postSkipProperty(
     { method: "POST", body: JSON.stringify(body) }
   );
 }
+
+// --- scorecard (customize layer) --------------------------------------------
+// Mirrors routes/scorecard.py. verbatim_text is canonical: stored and served
+// exactly as entered, only ever transformed at render time (<RuleText/>).
+// DELETE returns 409 with a detail message when flags reference the rule or
+// check (audit rows are never orphaned); surface that detail to the analyst.
+
+export interface ApiBinaryCheck {
+  id: string;
+  kind: "trigger" | "requirement";
+  text: string;
+  evidence_criteria: string;
+  library_entry_id: string | null;
+}
+
+export interface ApiScorecardRule {
+  id: string;
+  verbatim_text: string;
+  severity: string;
+  position: number;
+  retrieval_keywords: { primary?: string[]; broad?: string[] };
+  seeded: boolean;
+  flag_count: number;
+  checks: ApiBinaryCheck[];
+}
+
+export function getScorecardApi(): Promise<ApiScorecardRule[]> {
+  return fetchJson<ApiScorecardRule[]>("/scorecard");
+}
+
+/** Auto-decomposes + derives keywords server-side (LLM call, ~5-10s). */
+export function postScorecardRule(body: {
+  verbatim_text: string;
+  severity: string;
+}): Promise<ApiScorecardRule> {
+  return fetchJson<ApiScorecardRule>("/scorecard/rules", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function patchScorecardRule(
+  ruleId: string,
+  body: { verbatim_text?: string; severity?: string; regenerate?: boolean }
+): Promise<ApiScorecardRule> {
+  return fetchJson<ApiScorecardRule>(`/scorecard/rules/${ruleId}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export function deleteScorecardRule(
+  ruleId: string
+): Promise<{ deleted: string }> {
+  return fetchJson<{ deleted: string }>(`/scorecard/rules/${ruleId}`, {
+    method: "DELETE",
+  });
+}
+
+export interface CheckUpsertInput {
+  kind: "trigger" | "requirement";
+  text: string;
+  evidence_criteria: string;
+}
+
+export function postScorecardCheck(
+  ruleId: string,
+  body: CheckUpsertInput
+): Promise<ApiBinaryCheck> {
+  return fetchJson<ApiBinaryCheck>(`/scorecard/rules/${ruleId}/checks`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function patchScorecardCheck(
+  checkId: string,
+  body: CheckUpsertInput
+): Promise<ApiBinaryCheck> {
+  return fetchJson<ApiBinaryCheck>(`/scorecard/checks/${checkId}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export function deleteScorecardCheck(
+  checkId: string
+): Promise<{ deleted: string }> {
+  return fetchJson<{ deleted: string }>(`/scorecard/checks/${checkId}`, {
+    method: "DELETE",
+  });
+}
