@@ -1,6 +1,14 @@
 # Deploying the Shiboleth demo
 
-> The approved plan (2026-07-13): Hostinger VPS + Docker Compose.
+> **LIVE since 2026-07-14.** Share link (frontend):
+> https://marketing-compliance-analysis-tool.vercel.app (Vercel project
+> `marketing-compliance-analysis-tool`, renamed from `shiboleth` 2026-07-14;
+> the old shiboleth.vercel.app URL is dead). Full-stack fallback:
+> https://217.15.168.253.sslip.io (Hostinger VPS, everything below).
+> Updates ship via `git push` to `main` — see Part 7b. Parts 1-7 are the
+> from-scratch runbook; keep them for rebuilds.
+>
+> The architecture (2026-07-13 plan, now live): Hostinger VPS + Docker Compose.
 > Caddy (automatic HTTPS) → Next.js web app + FastAPI (under `/api`) → Postgres.
 > The database is pre-seeded with the certified TurboTax demo data.
 > API keys live only in one file on the server; the browser never sees them.
@@ -46,6 +54,11 @@ the real safety net.
 2. Pick the plan **KVM 2** (2 vCPU, 8 GB RAM). The 8 GB matters: the app
    runs a headless Chrome for live crawling. Choose the billing period you
    are comfortable with (monthly is fine for a demo).
+
+   > What actually happened (2026-07-14): the live box is a 4 GB KVM 1-class
+   > VPS, not the planned 8 GB. Mitigation: a 4 GB swapfile was added on the
+   > server. The seeded demo runs fine; live crawls are the only headroom
+   > concern. If rebuilding from scratch, still prefer KVM 2.
 3. Create the account when prompted (email + password), pay, and continue
    to VPS setup.
 4. During setup Hostinger asks a few questions:
@@ -74,6 +87,12 @@ All commands in this part run **on your Mac** unless said otherwise.
 
    Copy the printed line into Hostinger: VPS panel → Settings → SSH keys →
    Add SSH key. (If you already added it during setup, skip.)
+
+   > The live setup (2026-07-14) uses a dedicated passphrase-free key
+   > `~/.ssh/shiboleth_deploy` on the Mac, wired into `~/.ssh/config` for
+   > this host with `IdentitiesOnly yes`. CI uses its own separate key
+   > (the `VPS_SSH_KEY` GitHub secret, Part 7b). The server is keys-only
+   > (`PasswordAuthentication no`).
 
 2. Log in to the server:
 
@@ -277,7 +296,7 @@ All on the server, from `/opt/shiboleth/code`:
 | See status | `docker compose -f docker-compose.prod.yml ps` |
 | Watch API logs | `docker compose -f docker-compose.prod.yml logs -f api` |
 | Restart everything | `docker compose -f docker-compose.prod.yml restart` |
-| Deploy new code (after rsync from Mac) | `docker compose -f docker-compose.prod.yml up -d --build` |
+| Deploy new code | normally just `git push origin main` (Part 7b); manual fallback: rsync from Mac, then `docker compose -f docker-compose.prod.yml up -d --build` |
 | Stop the demo | `docker compose -f docker-compose.prod.yml down` |
 | Wipe the DB and re-seed from the dump | `docker compose -f docker-compose.prod.yml down -v` then `up -d` |
 
