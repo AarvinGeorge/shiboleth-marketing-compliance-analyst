@@ -166,6 +166,14 @@ class Settings:
         raw = self._get("PROTECTED_RUN_IDS") or ""
         return frozenset(part.strip() for part in raw.split(",") if part.strip())
 
+    @property
+    def cors_allow_origins(self) -> tuple[str, ...]:
+        """Browser origins allowed to call the API cross-origin (the Vercel
+        frontend in prod). Unset/blank keeps dev behavior: local web app only."""
+        raw = self._get("CORS_ALLOW_ORIGINS") or ""
+        parsed = tuple(part.strip() for part in raw.split(",") if part.strip())
+        return parsed or ("http://localhost:3000",)
+
 
 def load_settings() -> Settings:
     """Startup path: load, verify, echo (masked). The only entry point main.py uses."""

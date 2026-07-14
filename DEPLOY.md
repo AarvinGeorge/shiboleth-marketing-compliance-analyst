@@ -223,6 +223,34 @@ If all boxes tick: **you are live.**
 
 ---
 
+## Part 7b — CI/CD (set up 2026-07-14)
+
+Deploys are automated; manual rsync (Part 5) is only for first-time setup
+or emergencies.
+
+**How updates ship now: `git push` to `main` does everything.**
+
+```
+git push origin main
+   ├─▶ GitHub Actions "deploy-backend": rsync to the VPS, rebuild the
+   │   Docker stack, smoke-check /api/health (DB volume + .env untouched)
+   └─▶ Vercel git integration: builds apps/web, deploys the frontend
+```
+
+- Backend workflow: `.github/workflows/deploy-backend.yml`. Watch runs with
+  `gh run list --workflow deploy-backend` or the repo's Actions tab.
+- Repo secrets it uses: `VPS_HOST`, `VPS_SSH_KEY` (dedicated CI key; its
+  public half is in the VPS `authorized_keys`), `VPS_KNOWN_HOSTS`.
+- Frontend: Vercel project (scope `aarvingeorges-projects`), root directory
+  `apps/web`, env `NEXT_PUBLIC_API_URL=https://217.15.168.253.sslip.io/api`.
+  The browser calls the VPS API cross-origin; the API allows it via
+  `CORS_ALLOW_ORIGINS` in the server `.env`.
+- The VPS keeps serving its own full copy (web + api) at the sslip.io
+  domain — it is a complete fallback if Vercel is down.
+- Vercel preview deployments (non-main branches) get preview URLs that are
+  NOT in `CORS_ALLOW_ORIGINS`; their API calls will fail CORS. Add specific
+  preview origins to the server `.env` if you ever need one to work.
+
 ## Part 8 — Everyday operations
 
 All on the server, from `/opt/shiboleth/code`:

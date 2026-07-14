@@ -1,0 +1,57 @@
+# meta: CI/CD for the VPS backend (deploy plan 2026-07-14). Every push to
+# main rsyncs the repo to /opt/shiboleth/code on the Hostinger VPS and
+# rebuilds the prod stack (Caddy + web + api + postgres; pgdata volume and
+# server .env untouched). The Vercel frontend deploys separately via
+# Vercel's git integration. Secrets: VPS_HOST, VPS_SSH_KEY (dedicated CI
+# key, private half), VPS_KNOWN_HOSTS (ssh-keyscan output).
+
+name: deploy-backend
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-backend
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "${{ secrets.VPS_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+
+      - name: Rsync code to VPS
+        run: |
+          rsync -az --delete \
+            --exclude .git \
+            --exclude .env \
+            --exclude apps/api/src/shiboleth/evals/.cache \
+            ./ root@${{ secrets.VPS_HOST }}:/opt/shiboleth/code/
+
+      - name: Rebuild and restart the stack
+        run: |
+          ssh root@${{ secrets.VPS_HOST }} '
+            set -e
+            cd /opt/shiboleth/code
+            docker compose -f docker-compose.prod.yml up -d --build
+            docker image prune -f
+          '
+
+      - name: Smoke check
+        run: |
+          for i in $(seq 1 12); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 \
+              "https://${{ secrets.VPS_HOST }}.sslip.io/api/health" || true)
+            [ "$code" = "200" ] && echo "health OK" && exit 0
+            sleep 10
+          done
+          echo "health check failed after 120s (last status: $code)" >&2
+          exit 1

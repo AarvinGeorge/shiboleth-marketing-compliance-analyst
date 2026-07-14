@@ -4,6 +4,8 @@ meta:
            construction, env verification at startup with masked echo,
            LangSmith tracing env propagation, /health. Routes mount here as
            milestones land (M4: checks, products, flags, metrics, SSE).
+           CORS origins are env-driven (CORS_ALLOW_ORIGINS) for the
+           Vercel-hosted frontend; default stays the dev web app.
   contract: create_app() -> FastAPI. Startup fails fast (EnvError) if
             code/.env is incomplete. GET /health -> {status, project}.
   deps: fastapi, shiboleth.config.
@@ -60,9 +62,12 @@ def create_app() -> FastAPI:
 
     from fastapi.middleware.cors import CORSMiddleware
 
+    # Origins resolved at construction time (middleware can't wait for the
+    # lifespan settings load); CORS_ALLOW_ORIGINS env drives prod, default
+    # stays the dev web app.
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:3000"],  # dev web app (M5 integration)
+        allow_origins=list(Settings.from_env().cors_allow_origins),
         allow_methods=["*"],
         allow_headers=["*"],
     )

@@ -2,12 +2,15 @@
 meta:
   purpose: Unit tests (first) for the public-demo hardening layer: env-driven
            Settings accessors (PAGE_CAP_MAX, CHECKS_RATE_LIMIT_PER_HOUR,
-           PROTECTED_RUN_IDS), the sliding-window RateLimiter, and the
-           effective_page_cap clamp. Defaults must keep dev behavior
-           unchanged (no cap change, limiter off, nothing protected).
+           PROTECTED_RUN_IDS, CORS_ALLOW_ORIGINS), the sliding-window
+           RateLimiter, and the effective_page_cap clamp. Defaults must keep
+           dev behavior unchanged (no cap change, limiter off, nothing
+           protected, CORS = local web app only).
   contract: Settings.page_cap_max default 20; checks_rate_limit_per_hour
             default 0 (disabled); protected_run_ids default empty frozenset,
-            parsed from a comma list with whitespace tolerance. RateLimiter
+            parsed from a comma list with whitespace tolerance;
+            cors_allow_origins default ("http://localhost:3000",), parsed
+            from a comma list preserving order. RateLimiter
             allows N hits per window per key, expires old hits, and is a
             no-op at limit 0. effective_page_cap = min(requested, max).
   deps: pytest; shiboleth.config, shiboleth.api.hardening.
@@ -36,6 +39,22 @@ class TestSettingsAccessors:
     def test_protected_run_ids_parses_comma_list_with_whitespace(self):
         settings = make_settings(PROTECTED_RUN_IDS=" abc123 , def456,, ")
         assert settings.protected_run_ids == frozenset({"abc123", "def456"})
+
+    def test_cors_origins_default_is_dev_web_app(self):
+        assert make_settings().cors_allow_origins == ("http://localhost:3000",)
+
+    def test_cors_origins_blank_falls_back_to_default(self):
+        settings = make_settings(CORS_ALLOW_ORIGINS="  ")
+        assert settings.cors_allow_origins == ("http://localhost:3000",)
+
+    def test_cors_origins_parses_comma_list_with_whitespace(self):
+        settings = make_settings(
+            CORS_ALLOW_ORIGINS=" https://shiboleth.vercel.app , http://localhost:3000,, "
+        )
+        assert settings.cors_allow_origins == (
+            "https://shiboleth.vercel.app",
+            "http://localhost:3000",
+        )
 
 
 class TestEffectivePageCap:
