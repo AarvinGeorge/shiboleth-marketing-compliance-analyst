@@ -138,9 +138,36 @@ make dev-web                                # Next.js on :3000
 
 The backend is **FastAPI** with a graph-orchestrated pipeline: ingestion, extraction, windowed retrieval, checking, reconciliation, and clustering as separate nodes with typed contracts, checkpointed in **Postgres** so a run can pause on a failed social fetch and resume from the database. Checking uses **LangChain** structured output (Claude Haiku 4.5 by default) with **LangSmith** tracing on every call. The frontend is **Next.js 15** with **Tailwind** and **shadcn/ui**, talking to the API through **TanStack Query**.
 
-Deployment is two-lane: the frontend on **Vercel**, the full stack (Caddy, Next.js, FastAPI, Postgres) on a VPS as a self-contained fallback. A push to main redeploys both, and GitHub is the source of truth for production configuration, including the server environment.
-
 Every code file carries a meta header stating its purpose, contract, and dependencies. Scoring and verdict math live in one pure module with no LLM and no I/O, because numbers a compliance officer relies on should be readable in one place.
+
+## Deployment and infrastructure
+
+Production runs in two lanes, so the demo stays up even if one lane fails:
+
+```
+                         Visitor's browser
+                        /                 \
+        Vercel (frontend)                  VPS, self-contained fallback
+  marketing-compliance-analysis-           Caddy (automatic HTTPS)
+  tool.vercel.app                           ├─ /api/* -> FastAPI (LLM keys live here)
+        |                                   │             └─ Postgres (Docker-internal,
+        └── calls the VPS API ──────────────┘                seeded demo data)
+            cross-origin (CORS)             └─ everything else -> Next.js
+```
+
+- **Frontend lane:** the Next.js app on Vercel, the shareable link. It calls the VPS API cross-origin, with the allowed origin pinned server-side.
+- **Full-stack lane:** a single Hostinger VPS running Docker Compose: Caddy terminating HTTPS with automatic certificates, the same Next.js build, FastAPI, and Postgres reachable only inside the Docker network. The database seeds itself with the certified demo run on first boot, so a fresh volume comes up demo-ready.
+
+**Continuous deployment is one push.** A push to main triggers two things in parallel: GitHub Actions rsyncs the code to the VPS, re-renders the server environment from GitHub secrets, rebuilds the stack, and smoke-checks the API health endpoint; Vercel builds and deploys the frontend from the same commit. GitHub is the single source of truth for production code and configuration. Nothing is hand-edited on the server, so the server cannot drift from the repo.
+
+**Security posture, because this tool holds LLM keys:**
+
+- Provider API keys exist in exactly one place: the server-side environment on the VPS, rendered from GitHub secrets on each deploy. The browser never sees a key, because every LLM call happens in the backend.
+- The server is SSH-keys-only with a dedicated deploy key, and the firewall allows only SSH, 80, and 443. Postgres is not exposed to the internet at all.
+- The public demo is hardened against abuse: a server-side cap on pages per live run, per-IP rate limiting on new checks, deletion protection on the seeded showcase runs, and hard monthly spend caps at the LLM providers as the final safety net.
+- A failed run fails loudly: an unhandled provider failure marks the run as failed in the UI with the error recorded, rather than leaving a lane spinning forever.
+
+The full from-scratch runbook (VPS provisioning, DNS or sslip.io, environment setup, launch checks, everyday operations, troubleshooting) lives in [DEPLOY.md](DEPLOY.md). Total infrastructure cost is about $5 to 8 per month for the VPS; the frontend lane and the CI pipeline are free-tier.
 
 ## Honest limitations and the road ahead
 
