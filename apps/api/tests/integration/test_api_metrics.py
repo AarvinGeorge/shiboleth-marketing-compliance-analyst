@@ -142,6 +142,32 @@ async def test_open_violations_excludes_needs_review(known_state):
     assert metrics["open_violations_high"] == 1
 
 
+async def test_open_violations_by_severity_partitions(known_state):
+    client, session, run, _ids = known_state
+    metrics = (await client.get("/metrics")).json()
+    by_severity = metrics["open_violations_by_severity"]
+    # independent SQL: open non-review flags on the latest run, mapped
+    # through the same rule->severity table the API uses
+    severity_by_rule = {"R-01": "High", "R-02": "High",
+                        "R-03": "Medium", "R-04": "Medium"}
+    review_ids = {row["flag_id"] for row in run.scores["outcome_rows"]
+                  if row["verdict_status"] == "needs_review"}
+    rows = (await session.execute(
+        select(Flag.id, Flag.check_id).where(
+            Flag.run_id == run.id, Flag.state == "open"
+        )
+    )).all()
+    expected = {"High": 0, "Medium": 0, "Low": 0}
+    for fid, check_id in rows:
+        if fid in review_ids:
+            continue
+        expected[severity_by_rule.get(check_id.rsplit("-", 1)[0], "Medium")] += 1
+    assert by_severity == expected == {"High": 1, "Medium": 1, "Low": 0}
+    # the severity partition sums to the tile number
+    assert sum(by_severity.values()) == metrics["open_violations"]
+    assert by_severity["High"] == metrics["open_violations_high"]
+
+
 async def test_latest_run_only_never_double_counts(known_state):
     client, session, _run, ids = known_state
     # the older run has 2 open flags; metrics must ignore them entirely

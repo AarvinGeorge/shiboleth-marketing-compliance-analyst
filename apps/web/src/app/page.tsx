@@ -36,6 +36,7 @@ import { Progress } from "@/components/ui/progress";
 import { MetricCard } from "@/components/primitives/metric-card";
 import { OpenFlagsDonut } from "@/components/primitives/open-flags-donut";
 import { PropertyIcon } from "@/components/primitives/property-chip";
+import { SeverityBar } from "@/components/primitives/severity-bar";
 import { NewCheckModal } from "@/components/shell/new-check-modal";
 import { PasteDialog } from "@/components/shell/paste-dialog";
 import { ApiError } from "@/lib/api";
@@ -86,13 +87,10 @@ export default function DashboardPage() {
             label="Open violations"
             intent="Open flags with a violation verdict across all products"
             value={String(metrics.open_violations)}
-            sublabel={[
-              {
-                text: `${metrics.open_violations_high} high`,
-                tone: "danger",
-              },
-              { text: " · latest run per product" },
-            ]}
+            sublabel={[{ text: "latest run per product" }]}
+            footer={
+              <SeverityBar bySeverity={metrics.open_violations_by_severity} />
+            }
           />
         </div>
       ) : null}

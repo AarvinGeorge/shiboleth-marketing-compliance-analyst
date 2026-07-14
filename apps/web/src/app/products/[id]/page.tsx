@@ -28,6 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MetricCard } from "@/components/primitives/metric-card";
 import { OpenFlagsDonut } from "@/components/primitives/open-flags-donut";
+import { SeverityBar } from "@/components/primitives/severity-bar";
 import { FlagRow } from "@/components/primitives/flag-row";
 import { IntersectionPill } from "@/components/primitives/verdict-tags";
 import { LifecycleChip } from "@/components/primitives/lifecycle-chip";
@@ -156,11 +157,11 @@ export default function ProductDetailPage({
             intent="Open flags with a violation verdict on this product's latest run"
             value={String(hero.openViolations)}
             sublabel={[
-              { text: `${hero.openViolationsHigh} high`, tone: "danger" },
               {
-                text: ` · ${hero.reviewed} of ${hero.totalFlags} flags reviewed`,
+                text: `${hero.reviewed} of ${hero.totalFlags} flags reviewed`,
               },
             ]}
+            footer={<SeverityBar bySeverity={hero.bySeverity} />}
           />
         </div>
       ) : null}

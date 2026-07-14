@@ -364,6 +364,9 @@ export interface ProductHero {
   };
   openViolations: number;
   openViolationsHigh: number;
+  /** Partitions openViolations exactly (severity from rules; per-flag
+   *  override is deferred). Drives the SeverityBar in the tile. */
+  bySeverity: { High: number; Medium: number; Low: number };
   reviewed: number;
   totalFlags: number;
 }
@@ -694,7 +697,7 @@ function buildHero(
     other: 0,
   };
   let openViolations = 0;
-  let openViolationsHigh = 0;
+  const bySeverity = { High: 0, Medium: 0, Low: 0 };
   for (const f of open) {
     // ONE violation definition everywhere: needs_review (verdict_status)
     // is its own slice and never a violation; legacy payloads without the
@@ -710,15 +713,14 @@ function buildHero(
       byTag.other += 1;
     }
     openViolations += 1;
-    if (severityOf(f.verdicts.check_id) === "High") {
-      openViolationsHigh += 1;
-    }
+    bySeverity[severityOf(f.verdicts.check_id)] += 1;
   }
   return {
     openTotal: open.length,
     byTag,
     openViolations,
-    openViolationsHigh,
+    openViolationsHigh: bySeverity.High,
+    bySeverity,
     reviewed: flags.length - open.length,
     totalFlags: flags.length,
   };

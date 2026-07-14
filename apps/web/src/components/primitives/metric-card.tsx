@@ -1,8 +1,9 @@
 // meta: MetricCard primitive (DESIGN.md components). Muted 12px label + info
 // tooltip carrying the metric's intent line (01_spec §10 / delta PDF), a
 // metric-value number (22px / 500 per DESIGN.md typography), muted sublabel
-// (parts can carry semantic tones), optional sparkline slot. Card surface per
-// DESIGN.md metric-card token: soft surface bg, rounded-md, 12x14 padding.
+// (parts can carry semantic tones), optional sparkline slot, optional footer
+// slot below the sublabel (e.g. the SeverityBar inside Open violations).
+// Card surface per DESIGN.md metric-card token: soft surface bg, rounded-md.
 
 import { Info } from "lucide-react";
 import {
@@ -26,6 +27,7 @@ export function MetricCard({
   delta,
   sublabel,
   sparkline,
+  footer,
   className,
 }: {
   label: string;
@@ -34,6 +36,7 @@ export function MetricCard({
   delta?: { text: string; tone: "success" | "danger" };
   sublabel: SublabelPart[];
   sparkline?: React.ReactNode;
+  footer?: React.ReactNode;
   className?: string;
 }) {
   return (
@@ -87,6 +90,7 @@ export function MetricCard({
           </span>
         ))}
       </div>
+      {footer ? <div className="mt-2">{footer}</div> : null}
     </div>
   );
 }

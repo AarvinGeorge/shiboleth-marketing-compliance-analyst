@@ -79,6 +79,9 @@ export interface ApiMetrics {
   };
   open_violations: number;
   open_violations_high: number;
+  // partitions open_violations exactly (severity from rules; per-flag
+  // override is deferred)
+  open_violations_by_severity: { High: number; Medium: number; Low: number };
 }
 
 export interface ApiVerdicts {

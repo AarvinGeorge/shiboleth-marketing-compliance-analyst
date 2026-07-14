@@ -7,7 +7,9 @@ meta:
            chips). Every number traces to a SQL aggregate over current DB
            state (KPI traceability, E3).
   contract: GET /metrics -> {open_flags_total, open_flags_by_tag,
-            open_violations, open_violations_high}. Scope: each product's
+            open_violations, open_violations_high,
+            open_violations_by_severity: {High, Medium, Low}}. The severity
+            partition sums to open_violations. Scope: each product's
             LATEST run only (multiple runs per product would double count;
             the dashboard product cards show the latest run and these
             numbers must equal them exactly). Definitions: open flag =
@@ -71,9 +73,9 @@ async def compute_portfolio_metrics(session) -> dict:
     latest = await _latest_runs(session)
     by_tag = {"unapproved_violation": 0, "drifted_but_compliant": 0,
               "needs_review": 0, "other": 0}
+    by_severity = {"High": 0, "Medium": 0, "Low": 0}
     open_total = 0
     violations = 0
-    violations_high = 0
     for r in latest:
         review_ids = needs_review_flag_ids(r)
         flags = (await session.execute(
@@ -90,13 +92,14 @@ async def compute_portfolio_metrics(session) -> dict:
             else:
                 by_tag["other"] += 1
             violations += 1
-            if _severity(f.check_id) == "High":
-                violations_high += 1
+            sev = _severity(f.check_id)
+            by_severity[sev if sev in by_severity else "Medium"] += 1
     return {
         "open_flags_total": open_total,
         "open_flags_by_tag": by_tag,
         "open_violations": violations,
-        "open_violations_high": violations_high,
+        "open_violations_high": by_severity["High"],
+        "open_violations_by_severity": by_severity,
     }
 
 
