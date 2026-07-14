@@ -473,7 +473,7 @@ function buildProductView(
     ([key, members]) => {
       const apiLabel =
         key === "unclustered"
-          ? "Not yet clustered"
+          ? "Individual findings"
           : detail.flags.find((f) => f.cluster_id === key)?.cluster_label ??
             "Cluster";
       const ruleIds = [

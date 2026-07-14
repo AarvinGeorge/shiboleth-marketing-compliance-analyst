@@ -16,8 +16,11 @@
 // suggested); no accept flow. A self-healing auto-trigger fires
 // POST /runs/{id}/issue-suggestions once for completed runs with wording
 // clusters but zero issue rows. Per-flag disposition via FlagRow, lifecycle
-// chips, three-tag verdicts. Demo products (404 from the API) fall back to
-// their fixture summaries with no flags.
+// chips, three-tag verdicts. Singleton flags render as the trailing
+// "Individual findings" section: caption instead of bulk Confirm/Dismiss
+// (per-row disposition only), rows sorted by effective severity, High first.
+// Demo products (404 from the API) fall back to their fixture summaries
+// with no flags.
 
 "use client";
 
@@ -43,7 +46,12 @@ import {
   type FlagView,
 } from "@/lib/data";
 import { useFlagStore } from "@/lib/flag-store";
-import type { FlagState, IntersectionTag, PropertyKind } from "@/lib/types";
+import type {
+  FlagState,
+  IntersectionTag,
+  PropertyKind,
+  Severity,
+} from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type Grouping = "issue" | "property";
@@ -224,6 +232,21 @@ export default function ProductDetailPage({
                       )
                     }
                   />
+                ) : c.id === "unclustered" ? (
+                  // Singleton flags: "Individual findings" section. Display
+                  // deltas vs a real cluster: explanatory caption, NO
+                  // group-level bulk buttons (per-row disposition stays),
+                  // rows sorted by effective severity, High first.
+                  <ClusterGroup
+                    key={c.id}
+                    label={c.label}
+                    sourceLine={c.sourceLine}
+                    dominantTag={c.dominantTag}
+                    views={sortBySeverity(memberViews(c, views))}
+                    productId={id}
+                    caption="One-of-a-kind findings with no similar wording elsewhere. Review each on its own."
+                    hideBulk
+                  />
                 ) : (
                   <ClusterGroup
                     key={c.id}
@@ -275,12 +298,19 @@ function ClusterGroup({
   dominantTag,
   views,
   productId,
+  caption = null,
+  hideBulk = false,
 }: {
   label: string;
   sourceLine: string;
   dominantTag: IntersectionTag;
   views: FlagView[];
   productId: string;
+  /** Extra muted line under the source line (Individual findings section). */
+  caption?: string | null;
+  /** Suppress the group-level Confirm all / Dismiss all (Individual
+   *  findings only; per-row disposition is unaffected). */
+  hideBulk?: boolean;
 }) {
   const lifecycles = useFlagStore((s) => s.lifecycles);
   const disposition = useDisposition(productId);
@@ -312,8 +342,12 @@ function ClusterGroup({
           <span className="text-xs text-muted-foreground">
             <SourceLine text={sourceLine} />
           </span>
+          {caption ? (
+            <span className="text-xs text-muted-foreground">{caption}</span>
+          ) : null}
         </div>
         {openIds.length > 0 ? (
+          hideBulk ? null : (
           <>
             <Button
               variant="ghost"
@@ -333,6 +367,7 @@ function ClusterGroup({
               Confirm all
             </Button>
           </>
+          )
         ) : (
           <ClusterStateChip
             states={flagIds.map((fid) => stateOf(fid))}
@@ -365,6 +400,17 @@ function memberViews(c: ClusterView, views: FlagView[]): FlagView[] {
   return c.flagIds
     .map((fid) => views.find((v) => v.flag.id === fid))
     .filter((v): v is FlagView => v !== undefined);
+}
+
+const SEVERITY_RANK: Record<Severity, number> = { High: 0, Medium: 1, Low: 2 };
+
+/** Individual-findings ordering: effective severity (severity_effective
+ *  with the rule-recommended fallback, already resolved into meta.severity),
+ *  High first; stable within a band. */
+function sortBySeverity(views: FlagView[]): FlagView[] {
+  return [...views].sort(
+    (a, b) => SEVERITY_RANK[a.meta.severity] - SEVERITY_RANK[b.meta.severity]
+  );
 }
 
 /** One-line root-cause hint from the member flags' real property/material
