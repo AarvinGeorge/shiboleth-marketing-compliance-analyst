@@ -1,0 +1,228 @@
+# meta: CI/CD for Adlign (pattern A per Aarvin: the repo's main branch is the
+# source of truth for EVERYTHING — code AND the server .env, which this workflow
+# renders from GitHub Actions secrets on every deploy; nothing on the server or
+# a laptop drives production).
+#
+# Pipeline (2026-07-23 hardening): verify-api + verify-web run on EVERY push and
+# pull request. deploy needs BOTH and runs only on push to main, so a red suite
+# now blocks production instead of shipping to it. Previously this workflow
+# deployed straight from a push with no test gate at all.
+#
+# Deploy path: rsync code to /opt/adlign/code -> render .env -> rebuild the prod
+# stack (pgdata volume untouched) -> smoke check health AND a real data endpoint.
+#
+# NOTE the VPS builds apps/web too (docker-compose.prod.yml), so it serves its
+# own copy of the frontend. A web-only change therefore MUST redeploy the VPS —
+# do not add a paths filter excluding apps/web, it would silently freeze the
+# fallback lane's UI. The Vercel lane is separate and deploys on its own.
+#
+# Secrets: VPS_HOST, VPS_SSH_KEY, VPS_KNOWN_HOSTS, POSTGRES_PASSWORD,
+# GOOGLE_API_KEY, GROQ_API_KEY, OPENAI_API_KEY, ANTHROPIC_API_KEY,
+# LANGSMITH_API_KEY. Non-secret config lives in the env block below — edit it
+# here, in git, never on the server.
+
+name: ci-cd
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  # --- non-secret production config (source of truth: this file) ---
+  DOMAIN: 217.15.168.253.sslip.io
+  LANGSMITH_TRACING: "true"
+  LANGSMITH_PROJECT: adlign-production
+  PAGE_CAP_MAX: "8"
+  CHECKS_RATE_LIMIT_PER_HOUR: "3"
+  PROTECTED_RUN_IDS: 559e0b158e41480eaa303af9cdc0d550,e9fc612df3d54fd6b035122dd7e7687c,05a9dd009201430ea56ce9f3f21aa0b1,3c09c654b7324415a3af90f7e581718a,13042afce80644d295e14ea559a3b75c
+  # Vercel frontend origin(s) allowed to call the API cross-origin.
+  # Trimmed to the single live origin 2026-07-23 after the Adlign rename was
+  # verified end to end (preflight 200 + allow-origin from adlign.vercel.app).
+  CORS_ALLOW_ORIGINS: https://adlign.vercel.app
+
+jobs:
+  verify-api:
+    name: verify-api
+    runs-on: ubuntu-latest
+    concurrency:
+      group: verify-api-${{ github.ref }}
+      cancel-in-progress: true
+
+    services:
+      postgres:
+        # same image as docker-compose.yml so pgvector is available to migrations
+        image: pgvector/pgvector:pg16
+        env:
+          # role/database keep the pre-rename name on purpose — see
+          # docker-compose.yml. The integration tests hardcode these creds.
+          POSTGRES_USER: shiboleth
+          POSTGRES_PASSWORD: shiboleth
+          POSTGRES_DB: shiboleth
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U shiboleth -d shiboleth"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: apps/api/uv.lock
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Render a placeholder .env
+        # config.verify() requires these keys to be present and non-blank.
+        # Tests run against cassettes, so placeholders are enough and no real
+        # secret ever reaches a CI runner.
+        run: |
+          cat > .env <<'EOF'
+          DATABASE_URL=postgresql+asyncpg://shiboleth:shiboleth@localhost:5432/shiboleth
+          GOOGLE_API_KEY=ci-placeholder
+          GROQ_API_KEY=ci-placeholder
+          OPENAI_API_KEY=ci-placeholder
+          ANTHROPIC_API_KEY=ci-placeholder
+          LANGSMITH_TRACING=false
+          LANGSMITH_API_KEY=ci-placeholder
+          LANGSMITH_PROJECT=adlign-ci
+          EOF
+
+      - name: Sync dependencies
+        working-directory: apps/api
+        run: uv sync --frozen
+
+      - name: Lint (ruff)
+        working-directory: apps/api
+        run: uv run ruff check src tests
+
+      - name: Test (pytest)
+        working-directory: apps/api
+        # Tests that read ../ground-truth or ../05_shibboleth_*.md skip here by
+        # design: that data lives outside this repo, so CI gates the
+        # self-contained subset. The full set runs locally.
+        run: uv run pytest -q
+
+  verify-web:
+    name: verify-web
+    runs-on: ubuntu-latest
+    concurrency:
+      group: verify-web-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install dependencies
+        working-directory: apps/web
+        run: npm ci
+
+      - name: Lint (eslint)
+        working-directory: apps/web
+        # zero-warning policy: a permanently tolerated warning is noise that
+        # hides the next real one. Baseline cleaned 2026-07-23.
+        run: npm run lint -- --max-warnings=0
+
+      - name: Typecheck (tsc)
+        working-directory: apps/web
+        run: npx tsc --noEmit
+
+      - name: Build (next)
+        working-directory: apps/web
+        run: npm run build
+
+  deploy:
+    name: deploy
+    needs: [verify-api, verify-web]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-backend
+      cancel-in-progress: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "${{ secrets.VPS_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+
+      - name: Rsync code to VPS
+        run: |
+          rsync -az --delete \
+            --exclude .git \
+            --exclude .env \
+            --exclude apps/api/src/adlign/evals/.cache \
+            ./ root@${{ secrets.VPS_HOST }}:/opt/adlign/code/
+
+      - name: Render server .env from GitHub secrets + config
+        run: |
+          ssh root@${{ secrets.VPS_HOST }} 'umask 077 && cat > /opt/adlign/code/.env' <<EOF
+          DOMAIN=$DOMAIN
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }}
+          GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
+          OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+          LANGSMITH_TRACING=$LANGSMITH_TRACING
+          LANGSMITH_API_KEY=${{ secrets.LANGSMITH_API_KEY }}
+          LANGSMITH_PROJECT=$LANGSMITH_PROJECT
+          PAGE_CAP_MAX=$PAGE_CAP_MAX
+          CHECKS_RATE_LIMIT_PER_HOUR=$CHECKS_RATE_LIMIT_PER_HOUR
+          PROTECTED_RUN_IDS=$PROTECTED_RUN_IDS
+          CORS_ALLOW_ORIGINS=$CORS_ALLOW_ORIGINS
+          EOF
+
+      - name: Rebuild and restart the stack
+        run: |
+          ssh root@${{ secrets.VPS_HOST }} '
+            set -e
+            cd /opt/adlign/code
+            docker compose -f docker-compose.prod.yml up -d --build
+            docker image prune -f
+          '
+
+      - name: Smoke check
+        # health alone cannot tell you the app is serving real data, so this
+        # also asserts the seeded demo product is readable through Caddy.
+        run: |
+          base="https://${{ secrets.VPS_HOST }}.sslip.io"
+          for i in $(seq 1 12); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$base/api/health" || true)
+            [ "$code" = "200" ] && break
+            sleep 10
+          done
+          if [ "$code" != "200" ]; then
+            echo "health check failed after 120s (last status: $code)" >&2
+            exit 1
+          fi
+          echo "health OK"
+
+          products=$(curl -s --max-time 20 "$base/api/products" || true)
+          echo "$products" | grep -q '"turbotax-free"' || {
+            echo "smoke FAILED: /api/products did not return the seeded demo product" >&2
+            echo "got: $(echo "$products" | head -c 300)" >&2
+            exit 1
+          }
+          echo "data OK: seeded demo product served"
+
+          web=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 "$base/" || true)
+          [ "$web" = "200" ] || { echo "smoke FAILED: web lane returned $web" >&2; exit 1; }
+          echo "web OK"

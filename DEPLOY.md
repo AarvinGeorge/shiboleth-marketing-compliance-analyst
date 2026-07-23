@@ -3,10 +3,13 @@
 > **LIVE since 2026-07-14.** Share link (frontend):
 > https://adlign.vercel.app (Vercel project `adlign`). Full-stack fallback:
 > https://217.15.168.253.sslip.io (Hostinger VPS, everything below).
-> Backend updates ship via `git push` to `main` — see Part 7b. The frontend
-> does NOT auto-deploy: this project has no Vercel git integration, so a
-> frontend change needs an explicit `vercel --prod` (see Part 7b). Parts 1-7
-> are the from-scratch runbook; keep them for rebuilds.
+> Both lanes ship from `git push` to `main` — see Part 7b. Parts 1-7 are the
+> from-scratch runbook; keep them for rebuilds.
+>
+> CI/CD (hardened 2026-07-23): every push and pull request runs `verify-api`
+> (pytest + ruff) and `verify-web` (eslint + tsc + build). The VPS deploy job
+> requires BOTH to pass and runs only on push to `main`, so a red suite blocks
+> production. Pull requests also get a Vercel preview deployment.
 >
 > Rename history: the project shipped as `shiboleth`, was renamed to
 > `marketing-compliance-analysis-tool` on 2026-07-14, and to `adlign` on
@@ -283,9 +286,17 @@ git push origin main
   `apps/web`, env
   `NEXT_PUBLIC_API_URL=https://217.15.168.253.sslip.io/api` (marked
   sensitive, so it is not readable back via the API — only replaceable).
-  Deploys are CLI-driven (`vercel --prod` from `code/`): there is NO git
-  integration on this project, despite what earlier notes claimed, so a
-  push to main does NOT update the frontend. Verified 2026-07-23.
+  Connected to GitHub (`AarvinGeorge/adlign-marketing-compliance-analyst`,
+  production branch `main`), so a push to main deploys the frontend and a PR
+  gets a preview URL. `vercel --prod` from `code/` still works for a manual
+  deploy.
+
+  History worth knowing: until 2026-07-23 this project had NO git connection
+  and only ever deployed by CLI, while a STRAY Vercel project named `code`
+  (created 2026-07-14, no root directory, so it never built a working app)
+  held the repo connection and burned a build on every push. The stray was
+  unlinked and the real project connected. If you see a `code` project in the
+  Vercel dashboard it is that leftover and can be deleted.
   The browser calls the VPS API cross-origin; the API allows it via
   `CORS_ALLOW_ORIGINS` in the server `.env`.
 - The VPS keeps serving its own full copy (web + api) at the sslip.io

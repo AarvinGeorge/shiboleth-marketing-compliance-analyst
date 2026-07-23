@@ -48,12 +48,6 @@ import {
 } from "@/lib/data";
 import type { ProductSummary } from "@/lib/fixtures";
 
-const MEDIUM_NAME: Record<string, string> = {
-  website: "Website",
-  instagram: "Instagram",
-  facebook: "Facebook",
-};
-
 export default function DashboardPage() {
   const { products, isLoading, apiDown, hasActiveRun } = useProducts();
   const { metrics } = useMetrics(hasActiveRun);
