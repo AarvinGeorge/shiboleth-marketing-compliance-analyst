@@ -49,10 +49,10 @@ class TestSettingsAccessors:
 
     def test_cors_origins_parses_comma_list_with_whitespace(self):
         settings = make_settings(
-            CORS_ALLOW_ORIGINS=" https://marketing-compliance-analysis-tool.vercel.app , http://localhost:3000,, "
+            CORS_ALLOW_ORIGINS=" https://adlign.vercel.app , http://localhost:3000,, "
         )
         assert settings.cors_allow_origins == (
-            "https://marketing-compliance-analysis-tool.vercel.app",
+            "https://adlign.vercel.app",
             "http://localhost:3000",
         )
 
