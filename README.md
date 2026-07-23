@@ -2,7 +2,7 @@
 
 **A marketing compliance analysis tool for fintech and bank-partner teams.**
 
-[![Live demo](https://img.shields.io/badge/live%20demo-marketing--compliance--analysis--tool.vercel.app-blue?style=flat-square)](https://marketing-compliance-analysis-tool.vercel.app)
+[![Live demo](https://img.shields.io/badge/live%20demo-adlign.vercel.app-blue?style=flat-square)](https://adlign.vercel.app)
 [![Checker accuracy](https://img.shields.io/badge/measured%20accuracy-78.8%25%20strict%2C%20GT%20v2-informational?style=flat-square)](#how-much-can-you-trust-it)
 
 Every fintech that partners with a bank signs up for the same quiet obligation: everything the marketing team publishes has to satisfy the bank's compliance standards. Marketing ships pages, blog posts, and campaigns every week. Compliance reviews them one page at a time, after the fact, with a highlighter and a spreadsheet.
@@ -11,7 +11,7 @@ That gap is where violations live. A free-filing claim goes out without its elig
 
 Adlign is a monitoring tool built for the analyst on the other side of that gap. You give it a scorecard (the rules your bank partner actually wrote) and your marketing properties. It reads every page, checks every rule against every material, and hands you back a triage-ready dashboard: what violates, what drifted from approved language, what needs a human call, and exactly which sentence is the problem on which page.
 
-**Try it live: [marketing-compliance-analysis-tool.vercel.app](https://marketing-compliance-analysis-tool.vercel.app)**
+**Try it live: [adlign.vercel.app](https://adlign.vercel.app)**
 
 The demo is preloaded with a real scan: TurboTax Free checked against a four-rule banking scorecard across turbotax.intuit.com, with 104 findings grouped into 7 issues.
 
@@ -148,8 +148,8 @@ Production runs in two lanes, so the demo stays up even if one lane fails:
                          Visitor's browser
                         /                 \
         Vercel (frontend)                  VPS, self-contained fallback
-  marketing-compliance-analysis-           Caddy (automatic HTTPS)
-  tool.vercel.app                           ├─ /api/* -> FastAPI (LLM keys live here)
+  adlign.vercel.app                        Caddy (automatic HTTPS)
+        |                                   ├─ /api/* -> FastAPI (LLM keys live here)
         |                                   │             └─ Postgres (Docker-internal,
         └── calls the VPS API ──────────────┘                seeded demo data)
             cross-origin (CORS)             └─ everything else -> Next.js

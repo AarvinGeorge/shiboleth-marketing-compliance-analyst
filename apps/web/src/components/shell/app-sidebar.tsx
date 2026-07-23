@@ -29,7 +29,7 @@ export function AppSidebar() {
     <aside className="flex w-64 flex-none flex-col border-r border-border bg-surface">
       <Link href="/" className="flex items-center gap-2.5 px-5 pb-3.5 pt-5">
         <span className="flex size-[26px] flex-none items-center justify-center rounded-[7px] bg-primary text-[13px] font-bold text-primary-foreground">
-          S
+          A
         </span>
         <span className="text-[15px] font-semibold tracking-tight">
           Adlign

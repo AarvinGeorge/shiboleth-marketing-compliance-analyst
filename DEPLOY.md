@@ -1,12 +1,16 @@
 # Deploying the Adlign demo
 
 > **LIVE since 2026-07-14.** Share link (frontend):
-> https://marketing-compliance-analysis-tool.vercel.app (Vercel project
-> `marketing-compliance-analysis-tool`, renamed from `adlign` 2026-07-14;
-> the old adlign.vercel.app URL is dead). Full-stack fallback:
+> https://adlign.vercel.app (Vercel project `adlign`). Full-stack fallback:
 > https://217.15.168.253.sslip.io (Hostinger VPS, everything below).
-> Updates ship via `git push` to `main` — see Part 7b. Parts 1-7 are the
-> from-scratch runbook; keep them for rebuilds.
+> Backend updates ship via `git push` to `main` — see Part 7b. The frontend
+> does NOT auto-deploy: this project has no Vercel git integration, so a
+> frontend change needs an explicit `vercel --prod` (see Part 7b). Parts 1-7
+> are the from-scratch runbook; keep them for rebuilds.
+>
+> Rename history: the project shipped as `shiboleth`, was renamed to
+> `marketing-compliance-analysis-tool` on 2026-07-14, and to `adlign` on
+> 2026-07-23 with the product rebrand. Both earlier vercel.app URLs are dead.
 >
 > The architecture (2026-07-13 plan, now live): Hostinger VPS + Docker Compose.
 > Caddy (automatic HTTPS) → Next.js web app + FastAPI (under `/api`) → Postgres.
@@ -274,11 +278,14 @@ git push origin main
 - CAUTION: `POSTGRES_PASSWORD` in GitHub must stay equal to the password
   the pgdata volume was initialized with, or the api loses the DB. To
   change it, change it in Postgres first, then in the GitHub secret.
-- Frontend: Vercel project `marketing-compliance-analysis-tool` (scope
-  `aarvingeorges-projects`), live at
-  https://marketing-compliance-analysis-tool.vercel.app — the shareable
-  link. Root directory `apps/web`, env
-  `NEXT_PUBLIC_API_URL=https://217.15.168.253.sslip.io/api`.
+- Frontend: Vercel project `adlign` (scope `aarvingeorges-projects`), live
+  at https://adlign.vercel.app — the shareable link. Root directory
+  `apps/web`, env
+  `NEXT_PUBLIC_API_URL=https://217.15.168.253.sslip.io/api` (marked
+  sensitive, so it is not readable back via the API — only replaceable).
+  Deploys are CLI-driven (`vercel --prod` from `code/`): there is NO git
+  integration on this project, despite what earlier notes claimed, so a
+  push to main does NOT update the frontend. Verified 2026-07-23.
   The browser calls the VPS API cross-origin; the API allows it via
   `CORS_ALLOW_ORIGINS` in the server `.env`.
 - The VPS keeps serving its own full copy (web + api) at the sslip.io
