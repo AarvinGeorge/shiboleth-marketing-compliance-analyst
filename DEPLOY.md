@@ -1,9 +1,9 @@
-# Deploying the Shiboleth demo
+# Deploying the Adlign demo
 
 > **LIVE since 2026-07-14.** Share link (frontend):
 > https://marketing-compliance-analysis-tool.vercel.app (Vercel project
-> `marketing-compliance-analysis-tool`, renamed from `shiboleth` 2026-07-14;
-> the old shiboleth.vercel.app URL is dead). Full-stack fallback:
+> `marketing-compliance-analysis-tool`, renamed from `adlign` 2026-07-14;
+> the old adlign.vercel.app URL is dead). Full-stack fallback:
 > https://217.15.168.253.sslip.io (Hostinger VPS, everything below).
 > Updates ship via `git push` to `main` — see Part 7b. Parts 1-7 are the
 > from-scratch runbook; keep them for rebuilds.
@@ -89,7 +89,7 @@ All commands in this part run **on your Mac** unless said otherwise.
    Add SSH key. (If you already added it during setup, skip.)
 
    > The live setup (2026-07-14) uses a dedicated passphrase-free key
-   > `~/.ssh/shiboleth_deploy` on the Mac, wired into `~/.ssh/config` for
+   > `~/.ssh/adlign_deploy` on the Mac, wired into `~/.ssh/config` for
    > this host with `IdentitiesOnly yes`. CI uses its own separate key
    > (the `VPS_SSH_KEY` GitHub secret, Part 7b). The server is keys-only
    > (`PasswordAuthentication no`).
@@ -144,7 +144,7 @@ certificate for it. Nothing to configure — just use that string as `DOMAIN`
 in Part 6.
 
 **Option B — real domain (nicer for the portfolio, ~$10/yr):**
-1. In Hostinger: Domains → buy one (e.g. `shiboleth-demo.com`), or use a
+1. In Hostinger: Domains → buy one (e.g. `adlign-demo.com`), or use a
    domain you already own.
 2. In the domain's DNS settings, add an **A record**:
    - Name/host: `@` (or `demo` if you want `demo.yourdomain.com`)
@@ -162,15 +162,15 @@ in Part 6.
 cd "/Users/aarvingeorge/Documents/Climb/Profile_Builder/tech-personal-projects/marketing-compliance-checker/code"
 
 # create the target folder on the server (one time)
-ssh root@YOUR_SERVER_IP "mkdir -p /opt/shiboleth"
+ssh root@YOUR_SERVER_IP "mkdir -p /opt/adlign"
 
 # the app itself (excludes local junk and your dev .env)
 rsync -av --exclude .git --exclude .venv --exclude node_modules \
   --exclude .next --exclude .env --exclude .worktrees \
-  ./ root@YOUR_SERVER_IP:/opt/shiboleth/code/
+  ./ root@YOUR_SERVER_IP:/opt/adlign/code/
 
 # the frozen corpus snapshots (optional, enables corpus-mode re-runs)
-rsync -av ../ground-truth root@YOUR_SERVER_IP:/opt/shiboleth/
+rsync -av ../ground-truth root@YOUR_SERVER_IP:/opt/adlign/
 ```
 
 Notes:
@@ -186,7 +186,7 @@ Notes:
 **On the server:**
 
 ```bash
-cd /opt/shiboleth/code
+cd /opt/adlign/code
 cp deploy/.env.prod.example .env
 nano .env
 ```
@@ -214,7 +214,7 @@ Fill in, then save (Ctrl+O, Enter, Ctrl+X):
 **On the server:**
 
 ```bash
-cd /opt/shiboleth/code
+cd /opt/adlign/code
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
@@ -256,7 +256,7 @@ workflow file. Nothing on the server or a laptop drives production.
 ```
 git push origin main
    ├─▶ GitHub Actions "deploy-backend": rsync code to the VPS, render
-   │   /opt/shiboleth/code/.env from GitHub secrets, rebuild the Docker
+   │   /opt/adlign/code/.env from GitHub secrets, rebuild the Docker
    │   stack, smoke-check /api/health (DB volume untouched)
    └─▶ Vercel git integration: builds apps/web, deploys the frontend
 ```
@@ -289,7 +289,7 @@ git push origin main
 
 ## Part 8 — Everyday operations
 
-All on the server, from `/opt/shiboleth/code`:
+All on the server, from `/opt/adlign/code`:
 
 | What | Command |
 |---|---|
@@ -313,5 +313,5 @@ run `./deploy/make_seed.sh` on the Mac, rsync again, then wipe + re-seed.
 | Site unreachable | `ufw status` should show 80 and 443 allowed; `docker compose ... ps` should show caddy Up. Hostinger's panel firewall (if enabled) must also allow 80/443. |
 | API container restarting | `logs api` — usually a missing key in `.env` (the app names exactly which key at startup). |
 | Dashboard empty | The seed only loads on FIRST boot of an empty DB volume. Fix: `down -v` then `up -d` (this erases any data added since). |
-| New check run errors immediately | Corpus mode needs `/opt/shiboleth/ground-truth` (Part 5's second rsync). Live mode needs no extra files. |
+| New check run errors immediately | Corpus mode needs `/opt/adlign/ground-truth` (Part 5's second rsync). Live mode needs no extra files. |
 | "Rate limited" while you demo | You hit your own 3-runs-per-hour cap. Either wait, or temporarily raise `CHECKS_RATE_LIMIT_PER_HOUR` in `.env` and `restart`. |

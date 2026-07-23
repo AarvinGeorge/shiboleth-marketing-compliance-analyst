@@ -1,6 +1,10 @@
-# meta: local Postgres 16 + pgvector for Shiboleth (01_spec §5 data model).
+# meta: local Postgres 16 + pgvector for Adlign (01_spec §5 data model).
 # One database plays SQL + JSONB + pgvector roles (04 §4 locked decision).
 # DATABASE_URL default in .env.example matches these credentials.
+# The role/database/container/volume keep the pre-rename name `shiboleth`
+# ON PURPOSE (rebrand 2026-07-23): POSTGRES_USER/POSTGRES_DB only take effect
+# on an empty volume, so renaming them would break existing dev and prod data
+# rather than rename it. Nothing here is user-visible.
 
 services:
   postgres:

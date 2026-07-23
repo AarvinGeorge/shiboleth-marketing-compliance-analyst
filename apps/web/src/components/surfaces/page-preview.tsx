@@ -2,7 +2,7 @@
 // 2026-07-10-flag-preview-design.md). Renders API /flags/{id}/preview in a
 // sandboxed iframe (no allow-top-navigation: frame-busting cannot hijack the
 // tab). The proxied document self-highlights the evidence quote (mark.js,
-// injected server-side) and reports {type:'shiboleth-preview', found} via
+// injected server-side) and reports {type:'adlign-preview', found} via
 // postMessage; found=false -> amber "page changed" banner. Loading skeleton
 // until iframe load; 15s timeout or load error -> unavailable banner.
 
@@ -25,7 +25,7 @@ export function PagePreview({ flagId }: { flagId: string }) {
     const onMessage = (e: MessageEvent) => {
       if (e.source !== iframeRef.current?.contentWindow) return;
       const data = e.data as { type?: string; found?: boolean };
-      if (data?.type === "shiboleth-preview") setQuoteFound(data.found === true);
+      if (data?.type === "adlign-preview") setQuoteFound(data.found === true);
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);

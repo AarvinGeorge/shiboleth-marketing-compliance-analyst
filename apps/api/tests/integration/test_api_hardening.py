@@ -9,14 +9,14 @@ meta:
   contract: 403 detail names the run as protected; 429 detail says rate
             limited; clamp passes min(requested, PAGE_CAP_MAX) into
             start_live_run(cap=...).
-  deps: pytest, httpx ASGITransport; shiboleth.main.create_app.
+  deps: pytest, httpx ASGITransport; adlign.main.create_app.
 """
 
 
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from shiboleth.main import create_app
+from adlign.main import create_app
 from tests.unit.test_config import make_settings
 
 
@@ -69,10 +69,10 @@ def stub_pipeline(monkeypatch):
     """Stub every import POST /checks resolves at call time; capture caps."""
     captured: dict = {}
 
-    import shiboleth.api.routes.runs as runs_module
-    import shiboleth.pipeline.corpus_run as corpus_run
-    import shiboleth.pipeline.live_run as live_run
-    import shiboleth.services.ingestion.discovery as discovery
+    import adlign.api.routes.runs as runs_module
+    import adlign.pipeline.corpus_run as corpus_run
+    import adlign.pipeline.live_run as live_run
+    import adlign.services.ingestion.discovery as discovery
 
     monkeypatch.setattr(runs_module, "_pipeline_deps", lambda settings: (None, None))
 

@@ -16,11 +16,11 @@ from pathlib import Path
 
 import pytest
 
-from shiboleth.config import REPO_ROOT, Settings
-from shiboleth.db.seed import CHECKS
-from shiboleth.db.seed_rules import D01_APPROVED_TEXT, RULES
-from shiboleth.pipeline.nodes.check import run_check
-from shiboleth.services.ingestion.corpus import load_corpus
+from adlign.config import REPO_ROOT, Settings
+from adlign.db.seed import CHECKS
+from adlign.db.seed_rules import D01_APPROVED_TEXT, RULES
+from adlign.pipeline.nodes.check import run_check
+from adlign.services.ingestion.corpus import load_corpus
 from tests.support.cassette import cassette_invoke
 
 GROUND_TRUTH = REPO_ROOT.parent / "ground-truth"
@@ -60,8 +60,8 @@ def invoke():
     import os
 
     if os.environ.get("CASSETTE_MODE") in ("record", "live"):
-        from shiboleth.main import propagate_env
-        from shiboleth.pipeline.nodes.check import production_invoke
+        from adlign.main import propagate_env
+        from adlign.pipeline.nodes.check import production_invoke
 
         settings.verify()
         propagate_env(settings)

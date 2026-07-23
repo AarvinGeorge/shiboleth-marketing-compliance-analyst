@@ -12,7 +12,7 @@ meta:
 
 from datetime import UTC, datetime, timedelta
 
-from shiboleth.services.scoring.kpis import (
+from adlign.services.scoring.kpis import (
     adaptive_duration,
     caught_metric,
     coverage_metric,

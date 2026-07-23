@@ -12,7 +12,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from shiboleth.services.scoring.formulas import (
+from adlign.services.scoring.formulas import (
     ALLOWED_TRANSITIONS,
     InvalidTransition,
     content_hash,
@@ -169,7 +169,7 @@ def test_stale_beyond_ttl():
 #     compliance-vs-approval matrix, not the rule alone; Aarvin-approved) -----
 
 def test_drift_recommends_low_regardless_of_rule_severity():
-    from shiboleth.services.scoring.formulas import recommended_severity
+    from adlign.services.scoring.formulas import recommended_severity
 
     assert recommended_severity("High", "drifted_but_compliant") == "Low"
     assert recommended_severity("Medium", "drifted_but_compliant") == "Low"
@@ -177,7 +177,7 @@ def test_drift_recommends_low_regardless_of_rule_severity():
 
 
 def test_violations_keep_rule_severity():
-    from shiboleth.services.scoring.formulas import recommended_severity
+    from adlign.services.scoring.formulas import recommended_severity
 
     for tag in ("unapproved_violation", "approved_but_non_compliant"):
         assert recommended_severity("High", tag) == "High"
@@ -187,7 +187,7 @@ def test_violations_keep_rule_severity():
 def test_unresolved_tags_keep_rule_severity_worst_case():
     # needs-review flags can carry all_good or an unknown/na tag; the
     # unresolved worst case is the rule severity, never an upgrade
-    from shiboleth.services.scoring.formulas import recommended_severity
+    from adlign.services.scoring.formulas import recommended_severity
 
     assert recommended_severity("High", "all_good") == "High"
     assert recommended_severity("Medium", "na") == "Medium"
@@ -196,7 +196,7 @@ def test_unresolved_tags_keep_rule_severity_worst_case():
 # --- measured-accuracy calibration (GT v2 certification, e5v2-final) ---------
 
 def test_measured_accuracy_known_rules():
-    from shiboleth.services.scoring.calibration import measured_accuracy
+    from adlign.services.scoring.calibration import measured_accuracy
 
     a1 = measured_accuracy("R-01-REQ")
     a3 = measured_accuracy("R-03-REQ")
@@ -208,6 +208,6 @@ def test_measured_accuracy_known_rules():
 def test_measured_accuracy_unknown_rule_is_honest_none():
     # custom rules added via the Customize layer have no certification yet:
     # the API must say "not measured", never borrow another rule's number
-    from shiboleth.services.scoring.calibration import measured_accuracy
+    from adlign.services.scoring.calibration import measured_accuracy
 
     assert measured_accuracy("CUSTOM-ab12-REQ") is None

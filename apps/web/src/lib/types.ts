@@ -1,4 +1,4 @@
-// meta: TypeScript mirror of apps/api/src/shiboleth/domain/schemas.py
+// meta: TypeScript mirror of apps/api/src/adlign/domain/schemas.py
 // (07 §6 rule: 1:1, both sides change in the same commit). M0: vocabulary +
 // core contracts; extended as milestones land.
 

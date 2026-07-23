@@ -13,8 +13,8 @@ meta:
 
 import pytest
 
-from shiboleth.pipeline.nodes.decompose import Decomposition
-from shiboleth.services.scorecard import (Conflict, create_rule, delete_rule,
+from adlign.pipeline.nodes.decompose import Decomposition
+from adlign.services.scorecard import (Conflict, create_rule, delete_rule,
                                           get_scorecard, load_rule_bundles,
                                           update_rule)
 from tests.integration.test_seed_db import (  # noqa: F401 — fixture import
@@ -76,7 +76,7 @@ async def test_rule_lifecycle_and_bundles(seeded_session):  # noqa: F811
     assert all(r["id"] != "R-05" for r in await get_scorecard(session))
 
     # deletion guard: attach a flag to R-01 and assert Conflict
-    from shiboleth.db.models import Flag, Run
+    from adlign.db.models import Flag, Run
     run = Run(product_id="turbotax-free", mode="corpus", status="done")
     session.add(run)
     await session.flush()

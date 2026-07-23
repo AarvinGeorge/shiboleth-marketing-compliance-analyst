@@ -2,9 +2,9 @@
 meta:
   purpose: Alembic async env. Migration URL resolution order:
            ALEMBIC_DATABASE_URL (tests) > code/.env DATABASE_URL (dev).
-  contract: target_metadata = shiboleth.db.models.Base.metadata; async engine
+  contract: target_metadata = adlign.db.models.Base.metadata; async engine
             (asyncpg) with run_sync bridge; offline mode supported.
-  deps: alembic, sqlalchemy[asyncio], shiboleth.config, shiboleth.db.models.
+  deps: alembic, sqlalchemy[asyncio], adlign.config, adlign.db.models.
 """
 
 import asyncio
@@ -13,8 +13,8 @@ import os
 from alembic import context
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from shiboleth.config import Settings
-from shiboleth.db.models import Base
+from adlign.config import Settings
+from adlign.db.models import Base
 
 config = context.config
 target_metadata = Base.metadata

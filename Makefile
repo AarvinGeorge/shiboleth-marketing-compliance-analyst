@@ -1,4 +1,4 @@
-# meta: developer entry points for the Shiboleth monorepo (07 §5 scaffold).
+# meta: developer entry points for the Adlign monorepo (07 §5 scaffold).
 
 API_DIR = apps/api
 WEB_DIR = apps/web
@@ -12,7 +12,7 @@ db-down:
 	docker compose down
 
 dev-api:
-	cd $(API_DIR) && uv run uvicorn shiboleth.main:app --reload --port 8000
+	cd $(API_DIR) && uv run uvicorn adlign.main:app --reload --port 8000
 
 dev-web:
 	cd $(WEB_DIR) && npm run dev
@@ -24,7 +24,7 @@ lint:
 	cd $(API_DIR) && uv run ruff check src tests
 
 smoke:
-	cd $(API_DIR) && uv run python -m shiboleth.smoke
+	cd $(API_DIR) && uv run python -m adlign.smoke
 
 evals:
 	@echo "E3 harness lands at M3 (08 §4)." && exit 1

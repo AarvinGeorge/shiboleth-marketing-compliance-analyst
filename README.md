@@ -1,4 +1,4 @@
-# Shiboleth
+# Adlign
 
 **A marketing compliance analysis tool for fintech and bank-partner teams.**
 
@@ -9,7 +9,7 @@ Every fintech that partners with a bank signs up for the same quiet obligation: 
 
 That gap is where violations live. A free-filing claim goes out without its eligibility disclosure. An approved FDIC line gets reworded by a well-meaning copywriter. Nobody notices until an auditor or a regulator does.
 
-Shiboleth is a monitoring tool built for the analyst on the other side of that gap. You give it a scorecard (the rules your bank partner actually wrote) and your marketing properties. It reads every page, checks every rule against every material, and hands you back a triage-ready dashboard: what violates, what drifted from approved language, what needs a human call, and exactly which sentence is the problem on which page.
+Adlign is a monitoring tool built for the analyst on the other side of that gap. You give it a scorecard (the rules your bank partner actually wrote) and your marketing properties. It reads every page, checks every rule against every material, and hands you back a triage-ready dashboard: what violates, what drifted from approved language, what needs a human call, and exactly which sentence is the problem on which page.
 
 **Try it live: [marketing-compliance-analysis-tool.vercel.app](https://marketing-compliance-analysis-tool.vercel.app)**
 
@@ -19,7 +19,7 @@ The demo is preloaded with a real scan: TurboTax Free checked against a four-rul
 
 ## What you can do today
 
-- **Run a check on any product.** Paste links or describe your marketing mediums in plain words. Shiboleth extracts the properties, discovers the most rule-relevant pages by semantic search against your scorecard, and scans them.
+- **Run a check on any product.** Paste links or describe your marketing mediums in plain words. Adlign extracts the properties, discovers the most rule-relevant pages by semantic search against your scorecard, and scans them.
 - **Read a dashboard that agrees with itself.** One definition of "violation" everywhere: the donut, the tiles, and the product pages all partition the same flags the same way.
 - **Triage by issue, not by flag.** Findings with the same wording cluster automatically, and an AI grouping pass suggests which clusters are the same underlying issue, with its reasoning shown. Confirm or dismiss 58 flags in one click, or ungroup and handle them one by one. Undo included.
 - **Open any flag down to the evidence.** The exact quoted sentence, highlighted in the page text as it was checked, with a live preview of the real page and the flagged line highlighted in place.
@@ -60,7 +60,7 @@ Axis one asks "does this satisfy the rule?" Axis two asks "does it match the pre
 
 [![Live page preview with the page-changed notice](docs/screenshots/04-flag-preview.png)](docs/screenshots/04-flag-preview.png)
 
-Flip the evidence panel from Text to Preview and Shiboleth renders the actual live page inline, scrolls to the flagged sentence, and highlights it. And when the page has changed since the run, it says so, right at the top, instead of pretending. The Text tab always shows the content exactly as it was checked.
+Flip the evidence panel from Text to Preview and Adlign renders the actual live page inline, scrolls to the flagged sentence, and highlights it. And when the page has changed since the run, it says so, right at the top, instead of pretending. The Text tab always shows the content exactly as it was checked.
 
 ### The scorecard
 
@@ -72,11 +72,11 @@ Rules are data, not code. Each rule is stored character for character as the ban
 
 [![New check modal with freeform mediums and semantic page discovery](docs/screenshots/06-new-check.png)](docs/screenshots/06-new-check.png)
 
-Describe your mediums the way you would to a colleague. Shiboleth reads the site's sitemap, ranks every URL semantically against your scorecard, and scans the most rule-relevant pages up to your cap. You watch the run live, page by page, and the results land in the same dashboard.
+Describe your mediums the way you would to a colleague. Adlign reads the site's sitemap, ranks every URL semantically against your scorecard, and scans the most rule-relevant pages up to your cap. You watch the run live, page by page, and the results land in the same dashboard.
 
 ## How a check actually works
 
-1. **Discover.** For each web property, Shiboleth pulls the sitemap and ranks all URLs by semantic relevance to the scorecard. A 10,000-URL site becomes the 20 pages most likely to matter.
+1. **Discover.** For each web property, Adlign pulls the sitemap and ranks all URLs by semantic relevance to the scorecard. A 10,000-URL site becomes the 20 pages most likely to matter.
 2. **Ingest.** Pages are fetched and stored first (content-addressed, deduplicated). Analysis always runs from the store, never from a live socket, so a run is reproducible.
 3. **Retrieve.** For each page and rule, keyword-family retrieval builds match-centered evidence windows so the checker reads the relevant passage, not 17,000 characters of navigation.
 4. **Check.** One structured LLM call per material and rule answers only two binary questions: trigger met, requirement met. Everything else (the two axes, the finding type, the verdict) is derived in code from those answers plus a programmatic comparison against the approved library text.
@@ -87,7 +87,7 @@ Shared page furniture (footers, cookie banners) is detected across pages and jud
 
 ## How much can you trust it
 
-This is the question that matters for a compliance tool, so Shiboleth answers it with measurements instead of adjectives.
+This is the question that matters for a compliance tool, so Adlign answers it with measurements instead of adjectives.
 
 The checker is evaluated against a frozen ground truth of 367 records built by semantic discovery over the real site plus a three-model judge panel (Claude, GPT-5.1, GPT-5) with an arbiter for disagreements, split into train and held-out test sets. Against that ground truth the production checker measures:
 
@@ -106,7 +106,7 @@ Three design decisions follow from taking those numbers seriously:
 - **There is no fake confidence.** Earlier versions displayed the model's self-reported confidence. Trace analysis across 1,552 verdicts showed it was uncalibrated (the rule the checker is worst at scored its highest self-confidence), so it was removed in favor of the measured numbers above.
 - **The human is the verdict.** The score you present is the verified score, recomputed from analyst confirmations and dismissals, shown alongside the draft score. Dismissed flags count as passes once you dismiss them. Your triage decisions also feed the evaluation golden set, so the checker is graded against analyst judgment, not against itself.
 
-In practice: treat Shiboleth as a tireless first-pass reviewer that reads everything and misses less than a skimming human, not as an oracle. It puts the evidence, the reasoning, the source page, and its own error rate in front of you, and leaves the call to you.
+In practice: treat Adlign as a tireless first-pass reviewer that reads everything and misses less than a skimming human, not as an oracle. It puts the evidence, the reasoning, the source page, and its own error rate in front of you, and leaves the call to you.
 
 ## Reusing it for your own product
 
@@ -123,8 +123,8 @@ Model choice is per-stage and provider-agnostic (Gemini, Groq, OpenAI, Anthropic
 You need Docker, Python 3.12 with [uv](https://docs.astral.sh/uv/), and Node 20+.
 
 ```bash
-git clone https://github.com/AarvinGeorge/shiboleth-marketing-compliance-analyst.git
-cd shiboleth-marketing-compliance-analyst
+git clone https://github.com/AarvinGeorge/adlign-marketing-compliance-analyst.git
+cd adlign-marketing-compliance-analyst
 
 make db-up                                  # Postgres 16 + pgvector in Docker
 cp .env.example apps/api/.env               # add your provider API keys
@@ -176,9 +176,15 @@ The full from-scratch runbook (VPS provisioning, DNS or sslip.io, environment se
 - **Social media fetching is best-effort.** Instagram and Facebook block scrapers aggressively; when a fetch fails, the run parks and offers a paste-content fallback rather than fabricating results.
 - **Accuracy is disclosed, not solved.** 78.8% strict is the honest current number. The planned verifier pass (a second model auditing every flag) and the retrieval upgrade are both aimed at raising it, and every re-certification updates the numbers shown in the product.
 
+## How this came to be
+
+Adlign started as a three-day product trial with [Shibboleth](https://www.shibboleth.ai), a San Francisco company working on marketing compliance. Their brief supplied the problem statement this tool is built around: compliance review happens after publication, one page at a time, while marketing ships continuously. That framing (monitoring at volume, not one-off pre-approval) set the dashboard-first shape of the product, and the four-rule bank-partner scorecard in the demo is modelled on the one they provided.
+
+What shipped here went well past the trial: a frozen 367-record ground-truth set, a measured accuracy number, semantic page discovery, live crawling, and a deployed full stack. The product was developed under the working title *Shiboleth* and renamed **Adlign** in July 2026.
+
 ## Acknowledgments
 
-- Built as a three-day product trial for [Shibboleth](https://www.shibboleth.ai), whose framing of the monitoring problem (compliance reviews happen after publication, one page at a time) shaped the whole design.
+- [Shibboleth](https://www.shibboleth.ai), for the problem statement and the trial that started this.
 - The demo scenario follows the FTC's public action on "free" tax-filing advertising, checked against a realistic bank-partner scorecard.
 - Built with [Claude Code](https://claude.com/claude-code). Evaluation infrastructure runs on [LangSmith](https://smith.langchain.com).
 

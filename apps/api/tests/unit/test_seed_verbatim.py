@@ -13,8 +13,8 @@ import re
 
 import pytest
 
-from shiboleth.config import REPO_ROOT
-from shiboleth.db.seed_rules import RULES
+from adlign.config import REPO_ROOT
+from adlign.db.seed_rules import RULES
 
 DOC05 = REPO_ROOT.parent / "05_shibboleth_problem_context_and_scorecard_2026-07-09.md"
 

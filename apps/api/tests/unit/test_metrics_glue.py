@@ -9,7 +9,7 @@ meta:
   deps: pytest.
 """
 
-from shiboleth.services.scoring.metrics import outcomes_to_scores
+from adlign.services.scoring.metrics import outcomes_to_scores
 
 
 def outcome(status: str, severity: str = "High", property_id: str = "tt-website"):

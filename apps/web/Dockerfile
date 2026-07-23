@@ -1,4 +1,4 @@
-# meta: production image for the Shiboleth web app (deploy plan 2026-07-13).
+# meta: production image for the Adlign web app (deploy plan 2026-07-13).
 # Next.js standalone output; NEXT_PUBLIC_API_URL is baked at BUILD time
 # (Next inlines NEXT_PUBLIC_* into the client bundle) and defaults to /api —
 # Caddy strips that prefix and proxies to the api container, so browser and

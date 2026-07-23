@@ -12,7 +12,7 @@ meta:
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from shiboleth.db.models import Event, Run
+from adlign.db.models import Event, Run
 from tests.integration.test_seed_db import TEST_URL, _postgres_available, seeded_session  # noqa: F401
 
 pytestmark = pytest.mark.skipif(
@@ -35,7 +35,7 @@ async def client_with_run(seeded_session):  # noqa: F811
 
     from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-    from shiboleth.main import create_app
+    from adlign.main import create_app
 
     app = create_app()
     engine = create_async_engine(TEST_URL)

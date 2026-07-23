@@ -18,7 +18,7 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from shiboleth.db.models import Event, Run
+from adlign.db.models import Event, Run
 from tests.integration.test_seed_db import TEST_URL, _postgres_available, seeded_session  # noqa: F401
 
 pytestmark = pytest.mark.skipif(
@@ -47,7 +47,7 @@ async def app_stub(seeded_session):  # noqa: F811
 
 
 async def test_crashed_run_is_marked_failed_with_error_event(app_stub):
-    from shiboleth.api.routes.runs import _guarded
+    from adlign.api.routes.runs import _guarded
 
     app, session = app_stub
     run = Run(product_id="turbotax-free", mode="live", status="running",
@@ -73,7 +73,7 @@ async def test_crashed_run_is_marked_failed_with_error_event(app_stub):
 
 
 async def test_successful_run_untouched_by_guard(app_stub):
-    from shiboleth.api.routes.runs import _guarded
+    from adlign.api.routes.runs import _guarded
 
     app, session = app_stub
     run = Run(product_id="turbotax-free", mode="live", status="completed",
