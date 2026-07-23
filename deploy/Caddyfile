@@ -1,4 +1,4 @@
-# meta: single-domain reverse proxy for the Shiboleth demo (deploy plan
+# meta: single-domain reverse proxy for the Adlign demo (deploy plan
 # 2026-07-13). Caddy provisions and renews HTTPS automatically for $DOMAIN
 # (Let's Encrypt; sslip.io domains work too). /api/* is stripped and proxied
 # to FastAPI — the web bundle is built with NEXT_PUBLIC_API_URL=/api, so the

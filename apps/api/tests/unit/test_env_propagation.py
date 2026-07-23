@@ -11,8 +11,8 @@ meta:
 
 import os
 
-from shiboleth.config import Settings
-from shiboleth.main import propagate_env
+from adlign.config import Settings
+from adlign.main import propagate_env
 
 BASE = {
     "DATABASE_URL": "postgresql+asyncpg://u:p@localhost:5432/db",
@@ -39,7 +39,7 @@ def test_provider_keys_exported(monkeypatch):
     assert os.environ["GROQ_API_KEY"] == BASE["GROQ_API_KEY"]
     assert os.environ["LANGSMITH_API_KEY"] == BASE["LANGSMITH_API_KEY"]
     assert os.environ["LANGSMITH_TRACING"] == "true"
-    assert os.environ["LANGSMITH_PROJECT"] == "shiboleth-marketing-compliance-analyst-project"
+    assert os.environ["LANGSMITH_PROJECT"] == "adlign-production"
 
 
 def test_optional_keys_absent_stay_absent(monkeypatch):

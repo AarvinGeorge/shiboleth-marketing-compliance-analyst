@@ -11,7 +11,7 @@ meta:
 
 import pytest
 
-from shiboleth.services.ingestion import discovery
+from adlign.services.ingestion import discovery
 
 
 def fake_ranker(rules, batch):

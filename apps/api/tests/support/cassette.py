@@ -6,7 +6,7 @@ meta:
   contract: CASSETTE_MODE env: replay (default; missing key = hard fail so CI
             never silently calls a paid API) | record (call through on miss,
             persist) | live (always call, never persist).
-  deps: shiboleth.pipeline.nodes.check.CheckerVerdict; stdlib json.
+  deps: adlign.pipeline.nodes.check.CheckerVerdict; stdlib json.
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ import os
 from collections.abc import Callable
 from pathlib import Path
 
-from shiboleth.pipeline.nodes.check import CheckerVerdict
+from adlign.pipeline.nodes.check import CheckerVerdict
 
 
 class CassetteMiss(RuntimeError):

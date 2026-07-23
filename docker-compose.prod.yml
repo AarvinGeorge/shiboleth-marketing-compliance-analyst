@@ -1,4 +1,8 @@
-# meta: production stack for the Shiboleth demo (deploy plan 2026-07-13).
+# meta: production stack for the Adlign demo (deploy plan 2026-07-13).
+# The postgres role/database and the pgdata volume keep the pre-rename name
+# `shiboleth` ON PURPOSE (rebrand 2026-07-23): POSTGRES_USER/POSTGRES_DB apply
+# only on an empty volume, and renaming the volume key would point the stack at
+# a NEW empty volume — losing the seeded demo data. Nothing here is user-visible.
 # Caddy (80/443, auto-HTTPS) -> web (Next standalone) + api (FastAPI) ->
 # postgres (pgvector, docker-network only, NEVER port-published). First boot
 # on an empty pgdata volume loads deploy/seed/*.sql.gz (the certified demo
@@ -34,7 +38,7 @@ services:
       DATABASE_URL: postgresql+asyncpg://shiboleth:${POSTGRES_PASSWORD}@postgres:5432/shiboleth
     volumes:
       - ../ground-truth:/app/ground-truth:ro
-      - ./apps/api/src/shiboleth/evals/.cache:/app/code/apps/api/src/shiboleth/evals/.cache
+      - ./apps/api/src/adlign/evals/.cache:/app/code/apps/api/src/adlign/evals/.cache
     depends_on:
       postgres:
         condition: service_healthy

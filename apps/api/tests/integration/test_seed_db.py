@@ -19,9 +19,9 @@ from alembic.config import Config
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from shiboleth.db.models import BinaryCheck, LibraryEntry, Product, Property, Rule
-from shiboleth.db.seed import CHECKS, seed
-from shiboleth.db.seed_rules import D01_APPROVED_TEXT
+from adlign.db.models import BinaryCheck, LibraryEntry, Product, Property, Rule
+from adlign.db.seed import CHECKS, seed
+from adlign.db.seed_rules import D01_APPROVED_TEXT
 from tests.unit.test_seed_verbatim import DOC05, extract_rules_from_doc05
 
 API_DIR = Path(__file__).resolve().parents[2]
@@ -59,7 +59,7 @@ async def seeded_session():
     await admin.close()
 
     engine = create_async_engine(TEST_URL)
-    from shiboleth.db.models import Base
+    from adlign.db.models import Base
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)

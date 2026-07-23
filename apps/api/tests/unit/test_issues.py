@@ -8,7 +8,7 @@ meta:
   deps: pytest.
 """
 
-from shiboleth.pipeline.nodes.issues import (
+from adlign.pipeline.nodes.issues import (
     IssueSignature,
     MergeVerdict,
     suggest_issue_groups,

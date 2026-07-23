@@ -13,10 +13,10 @@ meta:
             from a comma list preserving order. RateLimiter
             allows N hits per window per key, expires old hits, and is a
             no-op at limit 0. effective_page_cap = min(requested, max).
-  deps: pytest; shiboleth.config, shiboleth.api.hardening.
+  deps: pytest; adlign.config, adlign.api.hardening.
 """
 
-from shiboleth.api.hardening import RateLimiter, effective_page_cap
+from adlign.api.hardening import RateLimiter, effective_page_cap
 from tests.unit.test_config import make_settings
 
 

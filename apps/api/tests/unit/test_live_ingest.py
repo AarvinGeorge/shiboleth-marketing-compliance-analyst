@@ -13,7 +13,7 @@ meta:
 
 from datetime import UTC, datetime, timedelta
 
-from shiboleth.services.ingestion.live import (
+from adlign.services.ingestion.live import (
     barrier_state,
     ingest_property,
     plan_fetches,

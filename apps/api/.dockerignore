@@ -5,5 +5,5 @@ __pycache__/
 .ruff_cache/
 .mypy_cache/
 tests/
-src/shiboleth/evals/.cache/
-src/shiboleth/evals/results/
+src/adlign/evals/.cache/
+src/adlign/evals/results/

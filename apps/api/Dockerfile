@@ -1,4 +1,4 @@
-# meta: production image for the Shiboleth API (deploy plan 2026-07-13).
+# meta: production image for the Adlign API (deploy plan 2026-07-13).
 # Source lives at /app/code/apps/api so config.py's parents[4] REPO_ROOT
 # resolves to /app/code and the optional corpus mount lands at
 # /app/ground-truth (mirrors the dev layout). Chromium via playwright is

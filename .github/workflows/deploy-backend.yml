@@ -2,7 +2,7 @@
 # Aarvin: the repo's main branch is the source of truth for EVERYTHING —
 # code AND the server .env, which this workflow renders from GitHub
 # Actions secrets on every deploy; nothing on the server or a laptop
-# drives production). Push to main -> rsync code to /opt/shiboleth/code ->
+# drives production). Push to main -> rsync code to /opt/adlign/code ->
 # render .env -> rebuild the prod stack (pgdata volume untouched) ->
 # health smoke. The Vercel frontend deploys separately via Vercel's git
 # integration. Secrets: VPS_HOST, VPS_SSH_KEY, VPS_KNOWN_HOSTS,
@@ -24,12 +24,15 @@ env:
   # --- non-secret production config (source of truth: this file) ---
   DOMAIN: 217.15.168.253.sslip.io
   LANGSMITH_TRACING: "true"
-  LANGSMITH_PROJECT: shiboleth-marketing-compliance-analyst-project
+  LANGSMITH_PROJECT: adlign-production
   PAGE_CAP_MAX: "8"
   CHECKS_RATE_LIMIT_PER_HOUR: "3"
   PROTECTED_RUN_IDS: 559e0b158e41480eaa303af9cdc0d550,e9fc612df3d54fd6b035122dd7e7687c,05a9dd009201430ea56ce9f3f21aa0b1,3c09c654b7324415a3af90f7e581718a,13042afce80644d295e14ea559a3b75c
-  # Vercel frontend origin(s) allowed to call the API cross-origin
-  CORS_ALLOW_ORIGINS: https://marketing-compliance-analysis-tool.vercel.app
+  # Vercel frontend origin(s) allowed to call the API cross-origin.
+  # Rebrand window (2026-07-23): the old origin and both candidate Adlign
+  # origins are allowed at once so the frontend never loses the API mid-flip.
+  # Trim to the single live origin once the Vercel rename has settled.
+  CORS_ALLOW_ORIGINS: https://marketing-compliance-analysis-tool.vercel.app,https://adlign.vercel.app,https://adlign-marketing-compliance-analyst.vercel.app
 
 jobs:
   deploy:
@@ -49,12 +52,12 @@ jobs:
           rsync -az --delete \
             --exclude .git \
             --exclude .env \
-            --exclude apps/api/src/shiboleth/evals/.cache \
-            ./ root@${{ secrets.VPS_HOST }}:/opt/shiboleth/code/
+            --exclude apps/api/src/adlign/evals/.cache \
+            ./ root@${{ secrets.VPS_HOST }}:/opt/adlign/code/
 
       - name: Render server .env from GitHub secrets + config
         run: |
-          ssh root@${{ secrets.VPS_HOST }} 'umask 077 && cat > /opt/shiboleth/code/.env' <<EOF
+          ssh root@${{ secrets.VPS_HOST }} 'umask 077 && cat > /opt/adlign/code/.env' <<EOF
           DOMAIN=$DOMAIN
           POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
           GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }}
@@ -74,7 +77,7 @@ jobs:
         run: |
           ssh root@${{ secrets.VPS_HOST }} '
             set -e
-            cd /opt/shiboleth/code
+            cd /opt/adlign/code
             docker compose -f docker-compose.prod.yml up -d --build
             docker image prune -f
           '

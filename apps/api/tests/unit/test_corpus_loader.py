@@ -14,8 +14,8 @@ import hashlib
 
 import pytest
 
-from shiboleth.config import REPO_ROOT
-from shiboleth.services.ingestion.corpus import (
+from adlign.config import REPO_ROOT
+from adlign.services.ingestion.corpus import (
     CorpusIntegrityError,
     load_corpus,
     parse_snapshot,

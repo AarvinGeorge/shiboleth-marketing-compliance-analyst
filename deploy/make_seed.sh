@@ -1,5 +1,5 @@
 #!/bin/sh
-# meta: builds the demo-data seed for the production stack (deploy plan
+# meta: builds the demo-data seed for the Adlign production stack (deploy plan
 # 2026-07-13). Dumps the LOCAL dev database (the certified TurboTax runs,
 # flags, clusters, issue groupings, dispositions, scorecard) into
 # deploy/seed/01_demo.sql.gz — the pgvector container auto-loads it on the

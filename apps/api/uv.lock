@@ -3,6 +3,63 @@ revision = 3
 requires-python = "==3.12.*"
 
 [[package]]
+name = "adlign"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "alembic" },
+    { name = "asyncpg" },
+    { name = "crawl4ai" },
+    { name = "fastapi" },
+    { name = "langchain" },
+    { name = "langchain-anthropic" },
+    { name = "langchain-google-genai" },
+    { name = "langchain-groq" },
+    { name = "langgraph" },
+    { name = "langsmith" },
+    { name = "pydantic" },
+    { name = "python-dotenv" },
+    { name = "sqlalchemy", extra = ["asyncio"] },
+    { name = "sse-starlette" },
+    { name = "uvicorn", extra = ["standard"] },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "httpx" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "alembic", specifier = ">=1.14" },
+    { name = "asyncpg", specifier = ">=0.30" },
+    { name = "crawl4ai", specifier = ">=0.9.1" },
+    { name = "fastapi", specifier = ">=0.115" },
+    { name = "langchain", specifier = ">=1.0" },
+    { name = "langchain-anthropic", specifier = ">=1.4.8" },
+    { name = "langchain-google-genai", specifier = ">=2.0" },
+    { name = "langchain-groq", specifier = ">=0.2" },
+    { name = "langgraph", specifier = ">=1.0" },
+    { name = "langsmith", specifier = ">=0.2" },
+    { name = "pydantic", specifier = ">=2.9" },
+    { name = "python-dotenv", specifier = ">=1.0" },
+    { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0" },
+    { name = "sse-starlette", specifier = ">=2.1" },
+    { name = "uvicorn", extras = ["standard"], specifier = ">=0.32" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "httpx", specifier = ">=0.27" },
+    { name = "pytest", specifier = ">=8.3" },
+    { name = "pytest-asyncio", specifier = ">=0.24" },
+    { name = "ruff", specifier = ">=0.8" },
+]
+
+[[package]]
 name = "aiofiles"
 version = "25.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1737,63 +1794,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/d1/a0/704c7292f7014c7e74ec84eddb7b109e1fbae74a16deae9c1504b1d15565/shapely-2.1.2-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:980c777c612514c0cf99bc8a9de6d286f5e186dcaf9091252fcd444e5638193d", size = 4152714, upload-time = "2025-09-24T13:50:39.9Z" },
     { url = "https://files.pythonhosted.org/packages/53/46/319c9dc788884ad0785242543cdffac0e6530e4d0deb6c4862bc4143dcf3/shapely-2.1.2-cp312-cp312-win32.whl", hash = "sha256:9111274b88e4d7b54a95218e243282709b330ef52b7b86bc6aaf4f805306f454", size = 1542745, upload-time = "2025-09-24T13:50:41.414Z" },
     { url = "https://files.pythonhosted.org/packages/ec/bf/cb6c1c505cb31e818e900b9312d514f381fbfa5c4363edfce0fcc4f8c1a4/shapely-2.1.2-cp312-cp312-win_amd64.whl", hash = "sha256:743044b4cfb34f9a67205cee9279feaf60ba7d02e69febc2afc609047cb49179", size = 1722861, upload-time = "2025-09-24T13:50:43.35Z" },
-]
-
-[[package]]
-name = "shiboleth"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "alembic" },
-    { name = "asyncpg" },
-    { name = "crawl4ai" },
-    { name = "fastapi" },
-    { name = "langchain" },
-    { name = "langchain-anthropic" },
-    { name = "langchain-google-genai" },
-    { name = "langchain-groq" },
-    { name = "langgraph" },
-    { name = "langsmith" },
-    { name = "pydantic" },
-    { name = "python-dotenv" },
-    { name = "sqlalchemy", extra = ["asyncio"] },
-    { name = "sse-starlette" },
-    { name = "uvicorn", extra = ["standard"] },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "httpx" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "ruff" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "alembic", specifier = ">=1.14" },
-    { name = "asyncpg", specifier = ">=0.30" },
-    { name = "crawl4ai", specifier = ">=0.9.1" },
-    { name = "fastapi", specifier = ">=0.115" },
-    { name = "langchain", specifier = ">=1.0" },
-    { name = "langchain-anthropic", specifier = ">=1.4.8" },
-    { name = "langchain-google-genai", specifier = ">=2.0" },
-    { name = "langchain-groq", specifier = ">=0.2" },
-    { name = "langgraph", specifier = ">=1.0" },
-    { name = "langsmith", specifier = ">=0.2" },
-    { name = "pydantic", specifier = ">=2.9" },
-    { name = "python-dotenv", specifier = ">=1.0" },
-    { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0" },
-    { name = "sse-starlette", specifier = ">=2.1" },
-    { name = "uvicorn", extras = ["standard"], specifier = ">=0.32" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "httpx", specifier = ">=0.27" },
-    { name = "pytest", specifier = ">=8.3" },
-    { name = "pytest-asyncio", specifier = ">=0.24" },
-    { name = "ruff", specifier = ">=0.8" },
 ]
 
 [[package]]

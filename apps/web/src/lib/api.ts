@@ -1,6 +1,6 @@
 // meta: typed fetch client for the FastAPI service (01_spec §6). Base URL from
 // NEXT_PUBLIC_API_URL (default http://localhost:8000). Response types mirror
-// apps/api/src/shiboleth/api/routes/{products,flags,runs,metrics}.py exactly;
+// apps/api/src/adlign/api/routes/{products,flags,runs,metrics}.py exactly;
 // ApiError carries the HTTP status so callers can branch on 409 (illegal
 // lifecycle transition / duplicate product name). No presentation logic here;
 // that lives in data.ts.

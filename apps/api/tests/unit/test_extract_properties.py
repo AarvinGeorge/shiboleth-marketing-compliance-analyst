@@ -9,7 +9,7 @@ meta:
   deps: pytest.
 """
 
-from shiboleth.services.ingestion.extract import PropertyDraft, extract_properties
+from adlign.services.ingestion.extract import PropertyDraft, extract_properties
 
 TEXT = """check these:
 https://turbotax.intuit.com/ and also instagram.com/turbotax

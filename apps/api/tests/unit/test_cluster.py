@@ -10,7 +10,7 @@ meta:
   deps: pytest.
 """
 
-from shiboleth.pipeline.nodes.cluster import cluster_flags
+from adlign.pipeline.nodes.cluster import cluster_flags
 
 
 def flag(fid: str, check_id: str, quote: str) -> dict:

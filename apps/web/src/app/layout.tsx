@@ -15,7 +15,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Shiboleth",
+  title: "Adlign",
   description: "Marketing compliance monitoring",
 };
 

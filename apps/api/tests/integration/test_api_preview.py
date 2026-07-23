@@ -16,7 +16,7 @@ import httpx
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from shiboleth.db.models import Flag, Material, Run
+from adlign.db.models import Flag, Material, Run
 from tests.integration.test_seed_db import TEST_URL, _postgres_available, seeded_session  # noqa: F401
 
 pytestmark = pytest.mark.skipif(
@@ -55,13 +55,13 @@ async def client_with_flag(seeded_session, monkeypatch):  # noqa: F811
     async def fake_fetch(url, cache_key=None):
         return url, PAGE_HTML
 
-    import shiboleth.api.routes.preview as preview_route
+    import adlign.api.routes.preview as preview_route
 
     monkeypatch.setattr(preview_route, "fetch_page", fake_fetch)
 
     from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-    from shiboleth.main import create_app
+    from adlign.main import create_app
 
     app = create_app()
     engine = create_async_engine(TEST_URL)
@@ -80,7 +80,7 @@ async def test_preview_returns_transformed_html(client_with_flag):
     assert '<base href="https://example.com/pricing">' in r.text
     assert "mark.js v8" in r.text
     assert '"File free with TaxCo."' in r.text  # JSON-encoded quote payload
-    assert "shiboleth-preview" in r.text  # postMessage contract
+    assert "adlign-preview" in r.text  # postMessage contract
 
 
 async def test_preview_unknown_flag_404(client_with_flag):
@@ -101,7 +101,7 @@ async def test_preview_fetch_failure_502(client_with_flag):
     async def failing_fetch(url, cache_key=None):
         raise httpx.ConnectError("boom")
 
-    import shiboleth.api.routes.preview as preview_route
+    import adlign.api.routes.preview as preview_route
 
     monkeypatch.setattr(preview_route, "fetch_page", failing_fetch)
     r = await client.get(f"/flags/{flag.id}/preview")

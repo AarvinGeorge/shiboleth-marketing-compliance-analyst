@@ -5,13 +5,13 @@ meta:
            function: (html, final_url, quote) -> proxied HTML with <base>,
            meta-CSP stripped, mark.js + highlighter injected.
   contract: build_preview_html and is_previewable_url in
-            shiboleth.services.preview.
+            adlign.services.preview.
   deps: none beyond the module under test.
 """
 
 from __future__ import annotations
 
-from shiboleth.services.preview import (
+from adlign.services.preview import (
     _quote_regex_source,
     build_preview_html,
     is_previewable_url,
@@ -61,31 +61,31 @@ def test_markjs_and_highlighter_injected_before_body_close():
     html = "<html><head></head><body><p>content</p></body></html>"
     out = build_preview_html(html, URL, QUOTE)
     assert "mark.js v8" in out  # vendored payload present
-    assert "shiboleth-evidence-mark" in out  # highlight class
+    assert "adlign-evidence-mark" in out  # highlight class
     assert '"File 100% free with TaxCo."' in out  # JSON-encoded quote
     # injected before </body>, after the page content
-    assert out.index("<p>content</p>") < out.index("shiboleth-evidence-mark")
-    assert out.rindex("</body>") > out.index("shiboleth-evidence-mark")
+    assert out.index("<p>content</p>") < out.index("adlign-evidence-mark")
+    assert out.rindex("</body>") > out.index("adlign-evidence-mark")
 
 
 def test_injection_appended_when_no_body_close():
     html = "<p>fragment only</p>"
     out = build_preview_html(html, URL, QUOTE)
-    assert "shiboleth-evidence-mark" in out
+    assert "adlign-evidence-mark" in out
 
 
 def test_quote_json_is_script_safe():
     # a quote containing </script> must not break out of the injected script
     quote = 'bad </script><script>alert(1)</script> quote'
     out = build_preview_html("<body>x</body>", URL, quote)
-    payload_start = out.index("shibolethQuote")
+    payload_start = out.index("adlignQuote")
     assert "</script><script>alert" not in out[payload_start:]
     assert "<\\/script>" in out  # escaped form present instead
 
 
 def test_postmessage_contract_present():
     out = build_preview_html("<body>x</body>", URL, QUOTE)
-    assert "shiboleth-preview" in out  # message type the web app listens for
+    assert "adlign-preview" in out  # message type the web app listens for
     assert "postMessage" in out
 
 

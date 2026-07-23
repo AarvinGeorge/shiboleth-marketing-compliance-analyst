@@ -11,7 +11,7 @@ meta:
   deps: pytest.
 """
 
-from shiboleth.services.ingestion.windows import (
+from adlign.services.ingestion.windows import (
     RULE_KEYWORDS,
     detect_shared_block,
     extract_windows,
@@ -115,26 +115,26 @@ class TestSharedBlock:
 
 class TestEvidenceNormalization:
     def test_markdown_emphasis_tolerated(self):
-        from shiboleth.pipeline.nodes.check import evidence_in_material
+        from adlign.pipeline.nodes.check import evidence_in_material
 
         material = "**TurboTax Free Edition:** TurboTax Free Edition ($0 Federal + $0 State) is available."
         quote = "TurboTax Free Edition: TurboTax Free Edition ($0 Federal + $0 State) is available."
         assert evidence_in_material(quote, material)
 
     def test_real_mismatch_still_fails(self):
-        from shiboleth.pipeline.nodes.check import evidence_in_material
+        from adlign.pipeline.nodes.check import evidence_in_material
 
         assert not evidence_in_material("Roughly 37% of taxpayers", "~37% of filers qualify")
 
     def test_markdown_link_unwrapped_for_comparison(self):
-        from shiboleth.pipeline.nodes.check import evidence_in_material
+        from adlign.pipeline.nodes.check import evidence_in_material
 
         material = "~37% of filers qualify. [Simple Form 1040 returns only](https://x.co/m) (no schedules)."
         quote = "~37% of filers qualify. Simple Form 1040 returns only (no schedules)."
         assert evidence_in_material(quote, material)
 
     def test_wording_drift_still_detected_despite_links(self):
-        from shiboleth.pipeline.nodes.check import evidence_in_material
+        from adlign.pipeline.nodes.check import evidence_in_material
 
         material = "Roughly 37% of taxpayers qualify. [Simple Form 1040](https://x.co) only."
         assert not evidence_in_material("~37% of filers qualify.", material)

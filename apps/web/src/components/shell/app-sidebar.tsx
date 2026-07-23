@@ -32,7 +32,7 @@ export function AppSidebar() {
           S
         </span>
         <span className="text-[15px] font-semibold tracking-tight">
-          Shiboleth
+          Adlign
         </span>
       </Link>
       <div className="flex flex-col gap-1.5 px-4 pb-3.5">

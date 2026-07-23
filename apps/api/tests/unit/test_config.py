@@ -1,6 +1,6 @@
 """
 meta:
-  purpose: Unit tests for shiboleth.config — env verification, key masking,
+  purpose: Unit tests for adlign.config — env verification, key masking,
            per-stage model registry. Written BEFORE config.py (TDD).
   contract: Settings.from_env(mapping) never reads the real environment when a
             mapping is given; verify() raises EnvError listing every missing
@@ -10,7 +10,7 @@ meta:
 
 import pytest
 
-from shiboleth.config import EnvError, Settings, mask
+from adlign.config import EnvError, Settings, mask
 
 REQUIRED = {
     "DATABASE_URL": "postgresql+asyncpg://shiboleth:shiboleth@localhost:5432/shiboleth",
@@ -97,7 +97,7 @@ class TestModelRegistry:
 class TestLangSmith:
     def test_project_default(self):
         settings = make_settings()
-        assert settings.langsmith_project == "shiboleth-marketing-compliance-analyst-project"
+        assert settings.langsmith_project == "adlign-production"
         assert settings.langsmith_tracing is True
 
     def test_tracing_false_when_env_says_so(self):

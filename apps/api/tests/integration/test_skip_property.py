@@ -7,10 +7,10 @@ meta:
            text and must resume the run when no property remains needs_input.
   contract: SkipRequest has property_id only; skipping the last parked
             property proceeds the run past the barrier.
-  deps: shiboleth.domain schemas.
+  deps: adlign.domain schemas.
 """
 
-from shiboleth.api.routes.runs import SkipRequest
+from adlign.api.routes.runs import SkipRequest
 
 
 def test_skip_request_needs_no_text():
