@@ -178,9 +178,9 @@ The full from-scratch runbook (VPS provisioning, DNS or sslip.io, environment se
 
 ## How this came to be
 
-Adlign started as a three-day product trial with [Shibboleth](https://www.shibboleth.ai), a San Francisco company working on marketing compliance. Their brief supplied the problem statement this tool is built around: compliance review happens after publication, one page at a time, while marketing ships continuously. That framing (monitoring at volume, not one-off pre-approval) set the dashboard-first shape of the product, and the four-rule bank-partner scorecard in the demo is modelled on the one they provided.
+Adlign began as a three-day product trial in San Francisco, built during an interview with a company working on marketing compliance. The trial brief supplied the problem this tool is built around: compliance review happens after publication, one page at a time, while marketing ships continuously. That framing (monitoring at volume, not one-off pre-approval) set the dashboard-first shape of the product, and the four-rule bank-partner scorecard in the demo is modelled on the one provided during the trial.
 
-What shipped here went well past the trial: a frozen 367-record ground-truth set, a measured accuracy number, semantic page discovery, live crawling, and a deployed full stack. The product was developed under the working title *Shiboleth* and renamed **Adlign** in July 2026.
+What shipped here went well past the trial: a frozen 367-record ground-truth set, a measured accuracy number, semantic page discovery, live crawling, and a deployed full stack.
 
 ## Acknowledgments
 
