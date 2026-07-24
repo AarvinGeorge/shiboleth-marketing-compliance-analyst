@@ -7,6 +7,16 @@
 # Agent context (project norm: code/CLAUDE.md is gitignored)
 CLAUDE.md
 
+# Local-only: planning/context, build evidence, dev tooling, and ops runbooks.
+# Kept on disk, never pushed to the public repo (the curated design slice lives
+# in docs/design/ instead). See docs/design/README.md.
+/project-context/
+/.progress/
+/docs/superpowers/
+/tools/
+/DEPLOY.md
+/OPERATIONS.md
+
 # Python
 __pycache__/
 *.py[cod]
