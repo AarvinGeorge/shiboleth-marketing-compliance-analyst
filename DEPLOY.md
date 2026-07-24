@@ -11,6 +11,9 @@
 > requires BOTH to pass and runs only on push to `main`, so a red suite blocks
 > production. Pull requests also get a Vercel preview deployment.
 >
+> For the risk register, hardening roadmap, and the plan for reusing this VPS
+> for other apps, see [OPERATIONS.md](OPERATIONS.md).
+>
 > Rename history: the project shipped as `shiboleth`, was renamed to
 > `marketing-compliance-analysis-tool` on 2026-07-14, and to `adlign` on
 > 2026-07-23 with the product rebrand. Both earlier vercel.app URLs are dead.
