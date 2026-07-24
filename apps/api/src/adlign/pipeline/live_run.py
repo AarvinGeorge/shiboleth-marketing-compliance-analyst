@@ -258,7 +258,9 @@ async def resume_checking(session: AsyncSession, invoke, labeler, run_id: str) -
                                 evidence_quote=outcome.evidence_quote,
                                 location=f"{material.ref} ({scope})",
                                 reason=outcome.reason, confidence=outcome.confidence,
-                                state="open")
+                                state="open",
+                                evidence_valid=outcome.evidence_valid,
+                                ambiguous=outcome.ambiguous)
                     session.add(flag)
                     flag_rows.append(flag)
                     row["flag_id"] = flag.id

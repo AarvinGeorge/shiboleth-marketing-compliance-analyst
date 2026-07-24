@@ -163,21 +163,32 @@ export default function FlagDetailPage({
                   : lifecycleLabel(lifecycle.state, lifecycle.team)}
               </span>
             </FactRow>
-            <FactRow label="Measured accuracy">
-              {flag.verdicts.accuracy_measured ? (
+            {flag.trust?.kind === "reliability" ? (
+              <FactRow label="Reliability">
                 <span
-                  className="text-xs"
-                  title={flag.verdicts.accuracy_measured.source}
+                  className="text-xs capitalize text-muted-foreground"
+                  title={flag.trust.detail}
                 >
-                  {Math.round(flag.verdicts.accuracy_measured.accuracy * 100)}%
-                  for this rule
+                  {flag.trust.label.replace("Reliability: ", "")}
                 </span>
-              ) : (
-                <span className="text-xs text-muted-foreground">
-                  Not yet measured against ground truth
-                </span>
-              )}
-            </FactRow>
+              </FactRow>
+            ) : (
+              <FactRow label="Measured accuracy">
+                {flag.verdicts.accuracy_measured ? (
+                  <span
+                    className="text-xs"
+                    title={flag.verdicts.accuracy_measured.source}
+                  >
+                    {Math.round(flag.verdicts.accuracy_measured.accuracy * 100)}%
+                    for this rule
+                  </span>
+                ) : (
+                  <span className="text-xs text-muted-foreground">
+                    Not yet measured against ground truth
+                  </span>
+                )}
+              </FactRow>
+            )}
             <FactRow label="Model">
               <span className="text-xs">{meta.model}</span>
             </FactRow>

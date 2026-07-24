@@ -92,6 +92,7 @@ async def run_corpus(session: AsyncSession, invoke, labeler,
             evidence_quote=outcome.evidence_quote,
             location=f"{page_id} ({scope})", reason=outcome.reason,
             confidence=outcome.confidence, state="open",
+            evidence_valid=outcome.evidence_valid, ambiguous=outcome.ambiguous,
         )
         session.add(flag)
         flag_rows.append(flag)

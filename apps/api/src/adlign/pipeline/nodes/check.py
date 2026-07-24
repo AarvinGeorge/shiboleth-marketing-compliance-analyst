@@ -62,6 +62,7 @@ class CheckOutcome:
     location: str
     reason: str
     confidence: float
+    ambiguous: bool = False  # Stage 1 trust signal: model self-flagged uncertainty
 
 
 PROMPT_TEMPLATE = """You are a marketing-compliance analyst for a fintech's bank partner. \
@@ -230,6 +231,7 @@ def run_check(
         location=verdict.location,
         reason=verdict.reason,
         confidence=verdict.confidence,
+        ambiguous=verdict.ambiguous,
     )
 
 

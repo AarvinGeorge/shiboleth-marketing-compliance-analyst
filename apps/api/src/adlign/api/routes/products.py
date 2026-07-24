@@ -101,13 +101,33 @@ async def product_detail(product_id: str, request: Request) -> dict:
                                                       rule_severity_by_check)
             from adlign.services.scoring.calibration import measured_accuracy
             from adlign.services.scoring.formulas import recommended_severity
+            from adlign.services.scoring.trust import reliability_badge
 
             review_ids = needs_review_flag_ids(latest)
             rule_sev = await rule_severity_by_check(session)
             for f in rows:
                 recommended = recommended_severity(
                     rule_sev.get(f.check_id, "Medium"), f.intersection_tag)
+                acc = measured_accuracy(f.check_id)
+                if acc is not None:
+                    trust = {
+                        "kind": "measured",
+                        "label": f"{round(acc['accuracy'] * 100)}% measured for this rule",
+                        "detail": acc["source"],
+                    }
+                else:
+                    level = reliability_badge(
+                        f.evidence_valid, f.ambiguous,
+                        needs_review=f.id in review_ids,
+                    )
+                    trust = {
+                        "kind": "reliability",
+                        "label": f"Reliability: {level}",
+                        "detail": "Structural indicator (evidence match + "
+                                  "ambiguity), not measured accuracy.",
+                    }
                 flags.append({
+                    "trust": trust,
                     "id": f.id, "state": f.state, "assigned_team": f.assigned_team,
                     "note": f.note, "cluster_id": f.cluster_id,
                     "cluster_label": clusters.get(f.cluster_id),

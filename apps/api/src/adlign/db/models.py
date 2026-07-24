@@ -164,6 +164,11 @@ class Flag(Base):
     location: Mapped[str] = mapped_column(Text, default="")
     reason: Mapped[str] = mapped_column(Text)
     confidence: Mapped[float] = mapped_column(Float)
+    # Stage 1 trust signals (advisory only, never affect verdict/score/state):
+    # evidence_valid = the quoted evidence substring-matched the material;
+    # ambiguous = the checker self-flagged the verdict as ambiguous.
+    evidence_valid: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    ambiguous: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     cluster_id: Mapped[str | None] = mapped_column(ForeignKey("clusters.id"), nullable=True)
     state: Mapped[str] = mapped_column(String, default="open")  # lifecycle (04 §6e)
     assigned_team: Mapped[str | None] = mapped_column(String, nullable=True)

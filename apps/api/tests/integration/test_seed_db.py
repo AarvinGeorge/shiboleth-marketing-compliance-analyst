@@ -142,3 +142,14 @@ async def test_seed_idempotent(seeded_session):
     assert counts["rules"] == 4 and counts["checks"] == 8
     rows = (await seeded_session.execute(select(Rule))).scalars().all()
     assert len(rows) == 4  # no duplicates
+
+
+async def test_flag_has_trust_signal_columns(seeded_session):
+    """Stage 1: flags carry the two structural trust signals as columns."""
+    from sqlalchemy import inspect as sa_inspect
+
+    conn = await seeded_session.connection()
+    names = await conn.run_sync(
+        lambda sync_conn: {c["name"] for c in sa_inspect(sync_conn).get_columns("flags")}
+    )
+    assert {"evidence_valid", "ambiguous"} <= names

@@ -628,6 +628,7 @@ function toFlagView(f: ApiFlag, property: Property, model: string): FlagView {
       reason: f.verdicts.reason,
       accuracy_measured: f.verdicts.accuracy_measured ?? null,
     },
+    trust: f.trust ?? null,
   };
   // materials.ref (source_url) is the clean per-page URL; f.location is a
   // display string that may be a corpus page id, so prefer the real URL.

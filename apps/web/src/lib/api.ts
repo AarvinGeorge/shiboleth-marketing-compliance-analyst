@@ -115,6 +115,9 @@ export interface ApiFlag {
   severity_effective?: "High" | "Medium" | "Low";
   severity_recommended?: "High" | "Medium" | "Low";
   severity_overridden?: boolean;
+  // per-flag trust signal, best available first (measured > verifier >
+  // reliability). Optional: legacy payloads lack it.
+  trust?: { kind: "measured" | "verifier" | "reliability"; label: string; detail: string };
   verdicts: ApiVerdicts;
 }
 

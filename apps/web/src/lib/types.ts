@@ -97,7 +97,17 @@ export interface Flag {
   modality: Modality;
   media_ref: string | null;
   cluster_id: string | null;
+  trust: FlagTrust | null;
   verdicts: CheckResult;
+}
+
+// Per-flag trust signal shown in the UI. kind picks which signal it is:
+// measured accuracy (certified rule), verifier agreement, or the structural
+// reliability badge (always available). Never a bare number without backing.
+export interface FlagTrust {
+  kind: "measured" | "verifier" | "reliability";
+  label: string;
+  detail: string;
 }
 
 export interface RunScores {
