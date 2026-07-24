@@ -128,6 +128,13 @@ async def product_detail(product_id: str, request: Request) -> dict:
                     }
                 flags.append({
                     "trust": trust,
+                    # per-flag independent verifier agreement (Stage 2); null
+                    # until the flag has been verified. Complements measured
+                    # accuracy (per-rule) with a per-flag second opinion.
+                    "verifier": (
+                        {"agrees": f.verifier_agrees, "reason": f.verifier_reason}
+                        if f.verifier_agrees is not None else None
+                    ),
                     "id": f.id, "state": f.state, "assigned_team": f.assigned_team,
                     "note": f.note, "cluster_id": f.cluster_id,
                     "cluster_label": clusters.get(f.cluster_id),

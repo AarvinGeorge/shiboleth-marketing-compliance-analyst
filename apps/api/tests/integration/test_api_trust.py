@@ -44,7 +44,9 @@ async def client_with_flags(seeded_session):  # noqa: F811
         Flag(run_id=run.id, material_id=material.id, check_id="R-01-REQ",
              axis_a=False, axis_b=False, intersection_tag="unapproved_violation",
              evidence_quote="File free.", location="hero", reason="r",
-             confidence=0.9, state="open", evidence_valid=True, ambiguous=False),
+             confidence=0.9, state="open", evidence_valid=True, ambiguous=False,
+             verifier_agrees=True, verifier_model="openai:test",
+             verifier_reason="second reviewer agrees"),
         Flag(run_id=run.id, material_id=material.id, check_id="R-99-REQ",
              axis_a=False, axis_b=False, intersection_tag="unapproved_violation",
              evidence_quote="File free.", location="hero", reason="r",
@@ -83,3 +85,10 @@ async def test_certified_rule_is_measured_custom_is_reliability(client_with_flag
     assert "measured" in by_check["R-01-REQ"]["label"].lower()
     assert by_check["R-99-REQ"]["kind"] == "reliability"
     assert by_check["R-99-REQ"]["label"] == "Reliability: strong"
+
+
+async def test_flag_payload_carries_verifier_when_present(client_with_flags):
+    r = await client_with_flags.get("/products/turbotax-free")
+    by_check = {f["verdicts"]["check_id"]: f.get("verifier") for f in r.json()["flags"]}
+    assert by_check["R-01-REQ"] == {"agrees": True, "reason": "second reviewer agrees"}
+    assert by_check["R-99-REQ"] is None  # never verified -> absent

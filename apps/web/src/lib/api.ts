@@ -118,6 +118,8 @@ export interface ApiFlag {
   // per-flag trust signal, best available first (measured > verifier >
   // reliability). Optional: legacy payloads lack it.
   trust?: { kind: "measured" | "verifier" | "reliability"; label: string; detail: string };
+  // per-flag independent verifier agreement; null/absent until verified.
+  verifier?: { agrees: boolean; reason: string } | null;
   verdicts: ApiVerdicts;
 }
 

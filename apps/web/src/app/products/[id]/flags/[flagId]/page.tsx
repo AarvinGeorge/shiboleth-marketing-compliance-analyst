@@ -189,6 +189,13 @@ export default function FlagDetailPage({
                 )}
               </FactRow>
             )}
+            {flag.verifier ? (
+              <FactRow label="Independent review">
+                <span className="text-xs" title={flag.verifier.reason}>
+                  {flag.verifier.agrees ? "Reviewers agree" : "Reviewers split"}
+                </span>
+              </FactRow>
+            ) : null}
             <FactRow label="Model">
               <span className="text-xs">{meta.model}</span>
             </FactRow>
