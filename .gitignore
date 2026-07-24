@@ -17,6 +17,10 @@ CLAUDE.md
 /DEPLOY.md
 /OPERATIONS.md
 
+# Local-only living reference + design notes (system understanding, unbuilt
+# design proposals). Kept on disk for reference; not shipped to the public repo.
+/notes/
+
 # Python
 __pycache__/
 *.py[cod]
