@@ -98,7 +98,14 @@ export interface Flag {
   media_ref: string | null;
   cluster_id: string | null;
   trust: FlagTrust | null;
+  verifier: FlagVerifier | null;
   verdicts: CheckResult;
+}
+
+// Per-flag independent verifier agreement (Stage 2). null until verified.
+export interface FlagVerifier {
+  agrees: boolean;
+  reason: string;
 }
 
 // Per-flag trust signal shown in the UI. kind picks which signal it is:
