@@ -75,6 +75,25 @@ async def _auto_group(app, run_id: str) -> None:
         print(f"issue auto-suggest skipped: {type(exc).__name__}: {exc}")
 
 
+async def _verify_if_enabled(app, run_id: str) -> None:
+    """Trust Stage 2: run the independent verifier over the run's flags when
+    ENABLE_VERIFIER is on. Advisory + non-blocking: NEVER fails the run, and
+    per-flag failures inside verify_run_flags leave flags unverified."""
+    settings = app.state.settings
+    if not settings.enable_verifier:
+        return
+    try:
+        from adlign.pipeline.nodes.verify import production_verify_invoke
+        from adlign.services.verification import verify_run_flags
+
+        model_string = settings.model_for("verify")
+        async with app.state.session_factory() as session:
+            await verify_run_flags(
+                session, run_id, production_verify_invoke(model_string), model_string)
+    except Exception as exc:  # noqa: BLE001 — advisory, never fatal
+        print(f"verifier pass skipped: {type(exc).__name__}: {exc}")
+
+
 async def _guarded(app, coro, run_id: str | None = None) -> None:
     """Fail LOUD, never silent (2026-07-14; trace analysis found provider
     hard failures — spend-cap 400s, 429s — killing the background task and
@@ -130,6 +149,7 @@ async def start_check(body: CheckRequest, request: Request) -> dict:
                 run_id = await run_corpus(session, invoke, labeler,
                                           product_id=body.product_id)
             await _auto_group(app, run_id)
+            await _verify_if_enabled(app, run_id)
 
         _track(app, corpus_task())
         return {"status": "started", "mode": "corpus"}
@@ -153,6 +173,7 @@ async def start_check(body: CheckRequest, request: Request) -> dict:
                                  product_id=body.product_id, run_id=run_id,
                                  cap=cap, ranker=ranker)
         await _auto_group(app, run_id)
+        await _verify_if_enabled(app, run_id)
 
     _track(app, live_task(), run_id=run_id)
     return {"run_id": run_id, "status": "started"}
