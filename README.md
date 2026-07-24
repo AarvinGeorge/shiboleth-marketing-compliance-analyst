@@ -132,7 +132,9 @@ make dev-api                                # FastAPI on :8000
 make dev-web                                # Next.js on :3000
 ```
 
-`make test` runs the suite (198 tests, LLM calls replayed from cassettes so CI is deterministic and free). `make smoke` verifies your provider keys. The production stack (Caddy with automatic HTTPS, seeded demo database, hardened API) ships as `docker-compose.prod.yml` with a full runbook in [DEPLOY.md](DEPLOY.md).
+`make test` runs the suite (198 tests, LLM calls replayed from cassettes so CI is deterministic and free). `make smoke` verifies your provider keys. The production stack (Caddy with automatic HTTPS, seeded demo database, hardened API) ships as `docker-compose.prod.yml`.
+
+Curious about the thinking behind the code? The [design docs](docs/design/) hold the PRD, spec, and architecture Adlign was built from.
 
 ## How it is built
 
@@ -167,7 +169,7 @@ Production runs in two lanes, so the demo stays up even if one lane fails:
 - The public demo is hardened against abuse: a server-side cap on pages per live run, per-IP rate limiting on new checks, deletion protection on the seeded showcase runs, and hard monthly spend caps at the LLM providers as the final safety net.
 - A failed run fails loudly: an unhandled provider failure marks the run as failed in the UI with the error recorded, rather than leaving a lane spinning forever.
 
-The full from-scratch runbook (VPS provisioning, DNS or sslip.io, environment setup, launch checks, everyday operations, troubleshooting) lives in [DEPLOY.md](DEPLOY.md). Total infrastructure cost is about $5 to 8 per month for the VPS; the frontend lane and the CI pipeline are free-tier.
+Total infrastructure cost is about $5 to 8 per month for the VPS; the frontend lane and the CI pipeline are free-tier.
 
 ## Honest limitations and the road ahead
 
