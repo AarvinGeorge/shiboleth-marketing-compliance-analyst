@@ -186,7 +186,7 @@ What shipped here went well past the trial: a frozen 367-record ground-truth set
 
 ## Acknowledgments
 
-- [Shibboleth](https://www.shibboleth.ai), for the problem statement and the trial that started this.
+- [Shiboleth](https://shiboleth.ai/), for the problem statement and the trial that started this.
 - The demo scenario follows the FTC's public action on "free" tax-filing advertising, checked against a realistic bank-partner scorecard.
 - Built with [Claude Code](https://claude.com/claude-code). Evaluation infrastructure runs on [LangSmith](https://smith.langchain.com).
 
